@@ -1,0 +1,84 @@
+behaviors:
+  Kart:
+    trainer_type: ppo
+
+    hyperparameters:
+      # Hyperparameters common to PPO and SAC
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 3.0e-4
+      #learning_rate: 3.0e-2
+      learning_rate_schedule: linear
+
+      # PPO-specific hyperparameters
+      beta: 5.0e-3
+      #beta: 1e-2
+      beta_schedule: constant
+      epsilon: 0.2
+      epsilon_schedule: linear
+      lambd: 0.95
+      num_epoch: 3
+      shared_critic: False
+
+    # Configuration of the neural network (common to PPO/SAC)
+    network_settings:
+      vis_encode_type: simple
+      normalize: false
+      hidden_units: 128
+      num_layers: 2
+      # memory
+      memory:
+        sequence_length: 64
+        memory_size: 256
+
+    # Trainer configurations common to all trainers
+    max_steps: 2000000
+    #time_horizon: 64
+    time_horizon: 512
+    summary_freq: 10000
+    keep_checkpoints: 5
+    checkpoint_interval: 50000
+    threaded: true
+    init_path: null
+
+    ## behavior cloning
+    #behavioral_cloning:
+    #  demo_path: D:/Program Files (x86)/Unity/Projects/Kart/Training/demos/medtrack.demo
+    #  #strength: 0.5
+    #  strength: 1.0
+    #  steps: 200000
+    #  batch_size: 512
+    #  num_epoch: 3
+    #  samples_per_update: 0
+
+    reward_signals:
+      # environment reward (default)
+      extrinsic:
+        strength: 1.0
+        gamma: 0.99
+
+      ## curiosity module
+      #curiosity:
+      #  #strength: 0.02
+      #  strength: 0.01
+      #  gamma: 0.99
+      #  encoding_size: 256
+      #  learning_rate: 3.0e-4
+
+      ## GAIL
+      #gail:
+      #  strength: 0.01
+      #  gamma: 0.99
+      #  encoding_size: 128
+      #  demo_path: E:/Programmi (x86)/Unity/Projects/Kart/Training/driving.demo
+      #  learning_rate: 3.0e-4
+      #  use_actions: false
+      #  use_vail: false
+
+    # self-play
+    #self_play:
+    #  window: 10
+    #  play_against_latest_model_ratio: 0.5
+    #  save_steps: 50000
+    #  swap_steps: 2000
+    #  team_change: 100000
