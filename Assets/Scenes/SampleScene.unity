@@ -1026,7 +1026,7 @@ PrefabInstance:
     - target: {fileID: -9033611909736222361, guid: bb73f469980dc044582a722d298f4a3b,
         type: 3}
       propertyPath: userFilename
-      value: twisty_lap_0
+      value: twisty_lap_1
       objectReference: {fileID: 0}
     - target: {fileID: 555101461293863054, guid: bb73f469980dc044582a722d298f4a3b,
         type: 3}
@@ -1051,7 +1051,12 @@ PrefabInstance:
     - target: {fileID: 2416955031111978604, guid: bb73f469980dc044582a722d298f4a3b,
         type: 3}
       propertyPath: DemonstrationName
-      value: twisty_lap_0
+      value: twisty_lap_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2416955031111978604, guid: bb73f469980dc044582a722d298f4a3b,
+        type: 3}
+      propertyPath: DemonstrationDirectory
+      value: D:\Program Files (x86)\Unity\Projects\Tesi\Training\demos\twisty
       objectReference: {fileID: 0}
     - target: {fileID: 3405935719477734878, guid: bb73f469980dc044582a722d298f4a3b,
         type: 3}
@@ -3197,12 +3202,12 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Follow
       value: 
-      objectReference: {fileID: 1193905899}
+      objectReference: {fileID: 1648155167}
     - target: {fileID: 6691645748356329552, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
       propertyPath: m_LookAt
       value: 
-      objectReference: {fileID: 1193905899}
+      objectReference: {fileID: 1648155167}
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
       propertyPath: m_RootOrder
@@ -3221,7 +3226,7 @@ PrefabInstance:
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 9
+      value: -6
       objectReference: {fileID: 0}
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
@@ -3231,17 +3236,17 @@ PrefabInstance:
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.13449772
+      value: 0.13449773
       objectReference: {fileID: 0}
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.000000017050041
+      value: -0.000000019062522
       objectReference: {fileID: 0}
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.000000002314219
+      value: 0.0000000025873756
       objectReference: {fileID: 0}
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
@@ -3583,7 +3588,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &927467011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3599,7 +3604,7 @@ MonoBehaviour:
   demoName: twisty_lap_0.state
   MLAgentPrefab: {fileID: 5209091469959198658, guid: 5f7c5784d4776074089b56351be94b74,
     type: 3}
-  MLAgentTrainedModel: {fileID: 5022602860645237092, guid: bc63b83fff2b8b64fb5a373882e70b30,
+  MLAgentTrainedModel: {fileID: 5022602860645237092, guid: 8a4c48ecc4ce3ac4e8e419bb8fbfcf58,
     type: 3}
   track: {fileID: 2307288666505384438}
   evaluationTimeScale: 20
@@ -4506,12 +4511,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f7c5784d4776074089b56351be94b74, type: 3}
---- !u!4 &1193905899 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4810912518991602692, guid: 19954de30401f73428254541a9ad156e,
-    type: 3}
-  m_PrefabInstance: {fileID: 624813006}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1270517234
 GameObject:
   m_ObjectHideFlags: 0
@@ -4677,8 +4676,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1270517234}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.13449772, y: -0.000000017050041, z: 0.000000002314219, w: 0.9909139}
-  m_LocalPosition: {x: 0, y: 3, z: 9}
+  m_LocalRotation: {x: 0.13449773, y: -0.000000019062522, z: 0.0000000025873756, w: 0.9909139}
+  m_LocalPosition: {x: 0, y: 3, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5480,6 +5479,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f7c5784d4776074089b56351be94b74, type: 3}
+--- !u!4 &1648155167 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5209091469959198656, guid: bb73f469980dc044582a722d298f4a3b,
+    type: 3}
+  m_PrefabInstance: {fileID: 183046736}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1648743756
 PrefabInstance:
   m_ObjectHideFlags: 0
