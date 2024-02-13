@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using KartGame.Custom.Demo;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace KartGame.Custom {
@@ -29,7 +28,7 @@ namespace KartGame.Custom {
             // Accumulator is (total squared distance, last position)
             length = t1.Aggregate((0f, t1[0].position), (acc, x) => (acc.Item1 + (x.position - acc.position).sqrMagnitude, x.position)).Item1;
 
-            return 1 - Mathf.Sqrt(total)/ Mathf.Sqrt(length);
+            return Mathf.Sqrt(total)/ Mathf.Sqrt(length);
         }
         public float Evaluate(Trajectory t) {
             return Evaluate(this, t);

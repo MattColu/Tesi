@@ -165,7 +165,7 @@ namespace KartGame.Custom {
             for (int s = 0; s < splitAmount; s++) {
                 evaluations[s] = Trajectory.Evaluate(subTrajectories[s], AISubtrajectories[s]);
             }
-            Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitDuration*Time.fixedDeltaTime*1000} ms each. Average similarity: {evaluations.Average()}");
+            Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitDuration*Time.fixedDeltaTime*1000} ms each. Average dissimilarity: {evaluations.Average()}");
         }
 
         private void FixedUpdate() {

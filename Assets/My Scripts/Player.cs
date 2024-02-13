@@ -145,5 +145,9 @@ namespace KartGame.Custom.Demo
             Debug.LogError($"File \"{filepath}\" does not exist");
             return false;
         }
+
+        public static bool CheckValidFile(string filepath, string extension) {
+            return CheckValidFile(filepath) && filepath.EndsWith($".{extension}");
+        }
     }
 }
