@@ -50,6 +50,20 @@ namespace KartGame.Custom {
         private float[] evaluations;
         private int subtrajectoryIndex = 0;
 
+        public void Setup(string demoName, ArcadeKart MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color originalSubtrajectoryColor, Color agentSubtrajectoryColor, bool drawOriginalFullTrajectory, Color originalTrajectoryColor) {
+            this.demoName = demoName;
+            this.MLAgentPrefab = MLAgentPrefab;
+            this.MLAgentTrainedModel = MLAgentTrainedModel;
+            this.track = track;
+            this.evaluationTimeScale = evaluationTimeScale;
+            this.splitAmount = splitAmount;
+            this.splitDuration = splitDuration;
+            this.originalSubtrajectoryColor = originalSubtrajectoryColor; 
+            this.agentSubtrajectoryColor = agentSubtrajectoryColor;
+            this.drawOriginalFullTrajectory = drawOriginalFullTrajectory;
+            this.originalTrajectoryColor = originalTrajectoryColor;
+        }
+
         private void Awake() {
             filepath = Application.persistentDataPath + "/demos/";
             
@@ -82,7 +96,7 @@ namespace KartGame.Custom {
             MLASR.toDisk = false;
             MLASR.OnWriteQueue += (queue) => {
                 Queue<StateData> tQueue = new();
-                tQueue.Enqueue(subTrajectories[subtrajectoryIndex].points[0]);  //First point is skipped for some re
+                tQueue.Enqueue(subTrajectories[subtrajectoryIndex].points[0]);  //First point is skipped for some reason
                 AISubtrajectories[subtrajectoryIndex] = new(tQueue.Concat(queue).ToArray());
                 subtrajectoryIndex++;
                 InitEvaluation();

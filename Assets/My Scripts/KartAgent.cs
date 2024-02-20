@@ -72,10 +72,10 @@ namespace KartGame.Custom.AI
 #endregion
 
         ArcadeKart m_Kart;
+        KeyboardInput m_Keyboard;
         bool m_Acceleration;
         bool m_Brake;
         float m_Steering;
-        //int m_CheckpointIndex;
 
         bool m_EndEpisode;
 
@@ -85,6 +85,7 @@ namespace KartGame.Custom.AI
         {
             m_Kart = GetComponent<ArcadeKart>();
             if (AgentSensorTransform == null) AgentSensorTransform = transform;
+            m_Keyboard = GetComponent<KeyboardInput>();
         }
 
         void Start()
@@ -245,10 +246,12 @@ namespace KartGame.Custom.AI
         }
 
         public override void Heuristic(in ActionBuffers actionsOut) {
-            InputData keyboardInput = m_Kart.GetComponent<KeyboardInput>().GenerateInput();
-            if (keyboardInput.Accelerate) actionsOut.DiscreteActions.Array[0] = 1;
-            if (keyboardInput.Brake) actionsOut.DiscreteActions.Array[0] = 2;
-            actionsOut.ContinuousActions.Array[0] = keyboardInput.TurnInput;
+            if (m_Keyboard != null) {
+                InputData keyboardInput = m_Keyboard.GenerateInput();
+                if (keyboardInput.Accelerate) actionsOut.DiscreteActions.Array[0] = 1;
+                if (keyboardInput.Brake) actionsOut.DiscreteActions.Array[0] = 2;
+                actionsOut.ContinuousActions.Array[0] = keyboardInput.TurnInput;
+            }
         }
     }
 }

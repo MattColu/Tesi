@@ -88,18 +88,6 @@ namespace KartGame.Custom.Demo
             } catch (DeserializeException de) {
                 Debug.LogError($"Error deserializing from JSON: {de}");
             }
-            /*Stream stream = new FileStream(Path.Join(filepath, filename), FileMode.Open);
-            try {
-                BinaryFormatter formatter = new();
-                T[] data = (T[])formatter.Deserialize(stream);
-                queue = new(data);
-                Debug.Log($"Read {data.Length} timesteps.");                
-            } catch (Exception e) {
-                Debug.LogError($"Error parsing \"{filename}\": {e}");
-                return;
-            } finally {
-                stream.Close();    
-            }*/
         }
 
         public static T[] ReadFromFile(string fullpath) {
@@ -114,19 +102,6 @@ namespace KartGame.Custom.Demo
                 data = null;
             }
             return data;
-            
-            /*Stream stream = new FileStream(fullpath, FileMode.Open);
-            T[] data;
-            try {
-                BinaryFormatter formatter = new();
-                data = (T[])formatter.Deserialize(stream);
-                Debug.Log($"Read {data.Length} timesteps.");                
-            } catch (Exception e) {
-                Debug.LogError($"Error parsing \"{fullpath}\": {e}");
-                data = null;
-            } finally {
-                stream.Close();    
-            }*/
         }
         public static bool CheckValidPath(string filepath) {
             if (!Directory.Exists(filepath)) {

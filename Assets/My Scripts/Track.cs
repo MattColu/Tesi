@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace KartGame.Custom {
     public class Track : MonoBehaviour
     {
-        [SerializeField] private GameObject Spawnpoint;
+        [SerializeField] private Transform Spawnpoint;
         public Collider[] Checkpoints {get; private set;}
 
         private void Awake(){
             List<Collider> checkpoints = new();
             FindAndAddCheckpoints(transform, checkpoints);
             Checkpoints = checkpoints.ToArray();
+            if (Spawnpoint == null) SetSpawnpoint();
         }
 
         private void FindAndAddCheckpoints(Transform obj, List<Collider> checkpoints) {
@@ -32,6 +34,10 @@ namespace KartGame.Custom {
 
         public Transform GetSpawn() {
             return Spawnpoint.transform;
+        }
+
+        public void SetSpawnpoint() {
+            Spawnpoint = transform.Find("Spawnpoint");
         }
 
     /// <summary>
@@ -68,6 +74,16 @@ namespace KartGame.Custom {
             if (b-a == 1) return true;
             if (a == Checkpoints.Length - 1 && b == 0) return true;
             return false;
+        }
+
+        public Bounds GetBoundingBox() {
+            Bounds bounds = new(transform.position, Vector3.one);
+            MeshFilter[] childMeshes = GetComponentsInChildren<MeshFilter>();
+            foreach(MeshFilter meshFilter in childMeshes){
+                bounds.Encapsulate(meshFilter.transform.position + meshFilter.sharedMesh.bounds.max);
+                bounds.Encapsulate(meshFilter.transform.position - meshFilter.sharedMesh.bounds.min);
+            }
+            return bounds;
         }
     }
 }

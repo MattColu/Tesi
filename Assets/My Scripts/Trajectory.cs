@@ -6,13 +6,14 @@ using UnityEngine;
 namespace KartGame.Custom {
     public class Trajectory
     {
+        public StateData[] points;
+        
         public Trajectory(StateData[] queue) {
             points = (StateData[])queue.Clone();
         }
         public Trajectory(Queue<StateData> queue) {
             points = queue.ToArray();
         }
-        public StateData[] points;
         
         public static float Evaluate(Trajectory ta, Trajectory tb) {
             StateData[] t1 = ta.points;
