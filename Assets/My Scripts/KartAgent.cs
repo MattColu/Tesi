@@ -219,10 +219,11 @@ namespace KartGame.Custom.AI
             }
         }
 
-        public void OnEpisodeBegin(int nextCheckpoint, Vector3 position, Quaternion rotation, Vector3 initialVelocity) {
+        public void OnEpisodeBegin(int nextCheckpoint, Vector3 position, Quaternion rotation, Vector3 initialVelocity, Vector3 initialAngVelocity) {
             lastCheckpoint = (nextCheckpoint - 1) % Track.Checkpoints.Length;
             transform.SetPositionAndRotation(position, rotation);
             m_Kart.Rigidbody.velocity = initialVelocity;
+            m_Kart.Rigidbody.angularVelocity = initialAngVelocity;
             m_Acceleration = false;
             m_Brake = false;
             m_Steering = 0f;

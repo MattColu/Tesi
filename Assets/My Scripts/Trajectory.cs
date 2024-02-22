@@ -29,7 +29,7 @@ namespace KartGame.Custom {
             // Accumulator is (total squared distance, last position)
             length = t1.Aggregate((0f, t1[0].position), (acc, x) => (acc.Item1 + (x.position - acc.position).sqrMagnitude, x.position)).Item1;
 
-            return Mathf.Sqrt(total)/ Mathf.Sqrt(length);
+            return 1 - Mathf.Clamp01(Mathf.Sqrt(total) / length);//Mathf.Sqrt(length);
         }
         public float Evaluate(Trajectory t) {
             return Evaluate(this, t);

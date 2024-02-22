@@ -36,7 +36,6 @@ public class TrainingEvaluator: EditorWindow
     }
     
     void OnGUI () {
-
         evaluatorPrefab = (ModelEvaluator) EditorGUILayout.ObjectField("Evaluator Prefab", evaluatorPrefab, typeof(ModelEvaluator), allowSceneObjects: false);
         demoName = EditorGUILayout.TextField("Demo Name", demoName);
         agentPrefab = (ArcadeKart) EditorGUILayout.ObjectField("Agent Prefab", agentPrefab, typeof(ArcadeKart), allowSceneObjects: false);
@@ -75,7 +74,7 @@ public class TrainingEvaluator: EditorWindow
     }
 
     void InstantiateTrack() {
-        Instantiate(track);
+        trackInstance = Instantiate(track);
     }
 
     void InstantiateEvaluator() {
@@ -84,5 +83,7 @@ public class TrainingEvaluator: EditorWindow
         evaluatorInstance = Instantiate(evaluatorPrefab, empty.transform);
         evaluatorInstance.Setup(demoName, agentPrefab, model, trackInstance, evaluationTimeScale, splitAmount, splitDuration, originalSubtrajectoryColor, agentSubtrajectoryColor, drawOriginalFullTrajectory, originalTrajectoryColor);
         empty.SetActive(true);
+        evaluatorInstance.transform.parent = empty.transform.parent;
+        DestroyImmediate(empty);
     }
 }

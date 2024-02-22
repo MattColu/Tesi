@@ -15,6 +15,8 @@ namespace KartGame.Custom.Demo {
             base.ExecuteStep(queueElement);
             kart.Rigidbody.position = queueElement.position;
             kart.Rigidbody.rotation = queueElement.rotation;
+            kart.Rigidbody.velocity = queueElement.velocity;
+            kart.Rigidbody.angularVelocity = queueElement.angularVelocity;
         }
 
         protected override void Cleanup() {

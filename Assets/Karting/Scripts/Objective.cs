@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 public enum GameMode
 {
-    TimeLimit, Crash, Laps
+    TimeLimit, Crash, Laps, FreeRoam
 }
 
 public abstract class Objective : MonoBehaviour

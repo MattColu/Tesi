@@ -46,7 +46,6 @@ namespace KartGame.Custom {
 
         private Trajectory[] subTrajectories;
         private Trajectory[] AISubtrajectories;
-        private Vector3[] lastVelocities;
         private float[] evaluations;
         private int subtrajectoryIndex = 0;
 
@@ -75,7 +74,6 @@ namespace KartGame.Custom {
             
             subTrajectories = new Trajectory[splitAmount];
             AISubtrajectories = new Trajectory[splitAmount];
-            lastVelocities = new Vector3[splitAmount];
             evaluations = new float[splitAmount];
         }
 
@@ -128,21 +126,15 @@ namespace KartGame.Custom {
         private void GenerateSubtrajectories() {
             for (int s=0; s<splitAmount; s++) {
                 StateData[] t = new StateData[splitDuration];
-                int index = s * originalTrajectory.points.Length/splitAmount - 1;       //Last point of previous split
-                Vector3 lastPos = originalTrajectory.points[index < 0 ? 0 : index].position;    //If this is the first split, lastPos = 0
-                for (int d=0; d<splitDuration; d++) {
-                    index++;
-                    if (index < originalTrajectory.points.Length) {                     //Take splitDuration points from original trajectory
+                int index = s * originalTrajectory.points.Length/splitAmount;   //Absolute index of first point of current split
+                for (int d=0; d<splitDuration; d++, index++) {
+                    if (index < originalTrajectory.points.Length) {             //Take splitDuration points from original trajectory
                         t[d] = originalTrajectory.points[index];
-                    } else {                                                            //If partial trajectory, discard, break
-                        t = null;
-                        break;
+                    } else {                                                    //If partial trajectory, discard: last subtrajectory -> return
+                        return;
                     }
                 }
-                if (t == null) return;
                 subTrajectories[s] = new Trajectory(t);
-
-                lastVelocities[s] = (t[0].position - lastPos)/Time.fixedDeltaTime;
             }
         }
 
@@ -162,10 +154,12 @@ namespace KartGame.Custom {
             splitTimer = 0;
             if (subtrajectoryIndex < splitAmount) {
                 MLASR.enabled = true;
-                kartAgent.OnEpisodeBegin(track.GetNextCheckpoint(subTrajectories[subtrajectoryIndex].points[0].position),
-                                        subTrajectories[subtrajectoryIndex].points[0].position,
-                                        subTrajectories[subtrajectoryIndex].points[0].rotation,
-                                        lastVelocities[subtrajectoryIndex]);
+                StateData initStateData = subTrajectories[subtrajectoryIndex].points[0];
+                kartAgent.OnEpisodeBegin(track.GetNextCheckpoint(initStateData.position),
+                                        initStateData.position,
+                                        initStateData.rotation,
+                                        initStateData.velocity,
+                                        initStateData.angularVelocity);
                 isEvaluating = true;
             } else {
                 Destroy(MLAgent.gameObject);
@@ -179,7 +173,7 @@ namespace KartGame.Custom {
             for (int s = 0; s < splitAmount; s++) {
                 evaluations[s] = Trajectory.Evaluate(subTrajectories[s], AISubtrajectories[s]);
             }
-            Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitDuration*Time.fixedDeltaTime*1000} ms each. Average dissimilarity: {evaluations.Average()}");
+            Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitDuration*Time.fixedDeltaTime*1000} ms each. Average Similarity: {evaluations.Average()}");
         }
 
         private void FixedUpdate() {
