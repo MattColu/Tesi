@@ -72,6 +72,7 @@ namespace KartGame.Custom.AI
 #endregion
 
         ArcadeKart m_Kart;
+        Rigidbody m_Rigidbody;
         KeyboardInput m_Keyboard;
         bool m_Acceleration;
         bool m_Brake;
@@ -84,6 +85,7 @@ namespace KartGame.Custom.AI
         public override void Initialize()
         {
             m_Kart = GetComponent<ArcadeKart>();
+            m_Rigidbody = GetComponent<Rigidbody>();
             if (AgentSensorTransform == null) AgentSensorTransform = transform;
             m_Keyboard = GetComponent<KeyboardInput>();
         }
@@ -96,8 +98,7 @@ namespace KartGame.Custom.AI
 
         void Update()
         {
-            if (m_EndEpisode)
-            {
+            if (m_EndEpisode) {
                 m_EndEpisode = false;
                 EndEpisode();
                 OnEpisodeBegin();
@@ -111,7 +112,7 @@ namespace KartGame.Custom.AI
                 case AgentMode.Inferencing:
                     if (ShowRaycasts) 
                         Debug.DrawRay(transform.position, Vector3.down * GroundCastDistance, Color.cyan);
-
+                    /*
                     // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
                     if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
                         && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
@@ -120,10 +121,11 @@ namespace KartGame.Custom.AI
                         var checkpoint = Track.Checkpoints[lastCheckpoint ?? 0].transform;
                         transform.localRotation = checkpoint.rotation;
                         transform.position = checkpoint.position;
-                        m_Kart.Rigidbody.velocity = default;
+                        m_Rigidbody.velocity = default;
                         m_Steering = 0f;
 						m_Acceleration = m_Brake = false; 
                     }
+                    */
                     break;
             }
         }
@@ -146,16 +148,20 @@ namespace KartGame.Custom.AI
         }
 
         private void OnCollisionEnter(Collision collision) {
-            if (collision.collider.CompareTag("Wall")) {
-                AddReward(HitPenalty);
-                m_EndEpisode = true;
-            } else if (collision.collider.CompareTag("Kart")) {
-                AddReward(KartHitPenalty);
+            if (Mode == AgentMode.Training) {
+                if (collision.collider.CompareTag("Wall")) {
+                    AddReward(HitPenalty);
+                    m_EndEpisode = true;
+                } else if (collision.collider.CompareTag("Kart")) {
+                    AddReward(KartHitPenalty);
+                }
             }
         }
 
         private void OnCollisionStay(Collision collision) {
-            m_EndEpisode = true;
+            if (Mode == AgentMode.Training) {
+                m_EndEpisode = true;
+            }
         }
 
         public override void CollectObservations(VectorSensor sensor)
@@ -169,16 +175,10 @@ namespace KartGame.Custom.AI
                 Debug.DrawRay(transform.position, toCheckpoint.normalized, Color.green);
             }
 
-            sensor.AddObservation(m_Kart.LocalSpeed()/m_Kart.GetMaxSpeed());     //1
-            sensor.AddObservation(m_Kart.Rigidbody.rotation);                     //4
-            sensor.AddObservation(toCheckpoint.normalized);                     //3
+            sensor.AddObservation(m_Kart.LocalSpeed()/m_Kart.GetMaxSpeed());        //1
+            sensor.AddObservation(m_Rigidbody.rotation);                       //4
+            sensor.AddObservation(toCheckpoint.normalized);                         //3
             sensor.AddObservation(Vector3.Dot(nextCheckpoint.transform.forward, transform.forward));//1
-
-            //// Bonus avvicinamento
-            //if (nextCheckDistance == null || toCheckpoint.magnitude < nextCheckDistance) {
-            //    AddReward(0.001f);
-            //    nextCheckDistance = toCheckpoint.magnitude;
-            //}
         }
 
         public override void OnActionReceived(ActionBuffers actions)
@@ -190,9 +190,9 @@ namespace KartGame.Custom.AI
             var next = (lastCheckpoint + 1) % Track.Checkpoints.Length ?? 0;
             var nextCollider = Track.Checkpoints[next];
             var direction = (nextCollider.transform.position - m_Kart.transform.position).normalized;
-            var reward = Vector3.Dot(m_Kart.Rigidbody.velocity.normalized, direction);
+            var reward = Vector3.Dot(m_Rigidbody.velocity.normalized, direction);
 
-            if (ShowRaycasts) Debug.DrawRay(AgentSensorTransform.position, m_Kart.Rigidbody.velocity, Color.blue);
+            if (ShowRaycasts) Debug.DrawRay(AgentSensorTransform.position, m_Rigidbody.velocity, Color.blue);
 
             // Add rewards if the agent is heading in the right direction
             AddReward(reward * TowardsCheckpointReward);
@@ -202,28 +202,33 @@ namespace KartGame.Custom.AI
 
         public override void OnEpisodeBegin()
         {
-            switch (Mode)
-            {
+            switch (Mode) {
                 case AgentMode.Training:
                     lastCheckpoint = Random.Range(0, Track.Checkpoints.Length - 1);
                     var collider = Track.Checkpoints[(int)lastCheckpoint];
                     transform.localRotation = collider.transform.rotation;
                     transform.position = collider.transform.position;
-                    m_Kart.Rigidbody.velocity = default;
-                    m_Acceleration = false;
-                    m_Brake = false;
-                    m_Steering = 0f;
+                    break;
+                case AgentMode.Inferencing:
+                    lastCheckpoint = null;
+                    Transform spawnpoint = Track.GetSpawnpoint();
+                    transform.localRotation = spawnpoint.rotation;
+                    transform.position = spawnpoint.position;
                     break;
                 default:
                     break;
             }
+            m_Rigidbody.velocity = default;
+            m_Acceleration = false;
+            m_Brake = false;
+            m_Steering = 0f;
         }
 
         public void OnEpisodeBegin(int nextCheckpoint, Vector3 position, Quaternion rotation, Vector3 initialVelocity, Vector3 initialAngVelocity) {
             lastCheckpoint = (nextCheckpoint - 1) % Track.Checkpoints.Length;
             transform.SetPositionAndRotation(position, rotation);
-            m_Kart.Rigidbody.velocity = initialVelocity;
-            m_Kart.Rigidbody.angularVelocity = initialAngVelocity;
+            m_Rigidbody.velocity = initialVelocity;
+            m_Rigidbody.angularVelocity = initialAngVelocity;
             m_Acceleration = false;
             m_Brake = false;
             m_Steering = 0f;

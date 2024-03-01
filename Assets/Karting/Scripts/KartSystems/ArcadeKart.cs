@@ -230,7 +230,7 @@ namespace KartGame.KartSystems
             wheel.suspensionSpring = spring;
         }
 
-        void Awake()
+        public void Awake()
         {
             Rigidbody = GetComponent<Rigidbody>();
             m_Inputs = GetComponents<IInput>();

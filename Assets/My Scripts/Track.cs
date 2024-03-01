@@ -28,11 +28,11 @@ namespace KartGame.Custom {
             }
         }
 
-        public Transform GetSpawn(int kartIndex) {
+        public Transform GetSpawnpoint(int kartIndex) {
             return Spawnpoint.transform.Find($"StartingSpot ({kartIndex})")??Spawnpoint.transform;
         }
 
-        public Transform GetSpawn() {
+        public Transform GetSpawnpoint() {
             return Spawnpoint.transform;
         }
 

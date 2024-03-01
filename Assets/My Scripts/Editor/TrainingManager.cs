@@ -96,7 +96,7 @@ public class TrainingManager: EditorWindow
     void InstantiateKarts() {
         for (int t = 0; t < instantiatedTracks.Length; t++) {
             Track track = instantiatedTracks[t];
-            Transform spawnpoint = track.GetSpawn();
+            Transform spawnpoint = track.GetSpawnpoint();
             
             for (int i = 0; i < settings.agentInstances; i++) {
                 KartAgent instance = Instantiate(settings.agent, spawnpoint.position, spawnpoint.rotation);
