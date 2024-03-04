@@ -208,12 +208,16 @@ namespace KartGame.Custom.AI
                     var collider = Track.Checkpoints[(int)lastCheckpoint];
                     transform.localRotation = collider.transform.rotation;
                     transform.position = collider.transform.position;
+                    m_Rigidbody.rotation = collider.transform.rotation;
+                    m_Rigidbody.position = collider.transform.position;                    
                     break;
                 case AgentMode.Inferencing:
                     lastCheckpoint = null;
                     Transform spawnpoint = Track.GetSpawnpoint();
-                    transform.localRotation = spawnpoint.rotation;
+                    transform.rotation = spawnpoint.rotation;
                     transform.position = spawnpoint.position;
+                    m_Rigidbody.rotation = spawnpoint.rotation;
+                    m_Rigidbody.position = spawnpoint.position;
                     break;
                 default:
                     break;
