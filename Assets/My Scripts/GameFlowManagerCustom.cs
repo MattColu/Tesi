@@ -4,8 +4,6 @@ using UnityEngine.Playables;
 using KartGame.KartSystems;
 using UnityEngine.SceneManagement;
 using KartGame.Custom.AI;
-using KartGame.Custom.Demo;
-using Unity.MLAgents.Demonstrations;
 
 public class GameFlowManagerCustom : MonoBehaviour
 {
@@ -70,6 +68,10 @@ public class GameFlowManagerCustom : MonoBehaviour
 			k.SetCanMove(false);
         }
 
+        if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
+            agent.SetupRecorders(FirebaseObject.Instance != null);
+        }
+
         //run race countdown animation
         StartCoroutine(ShowObjectivesRoutine());
 
@@ -91,6 +93,9 @@ public class GameFlowManagerCustom : MonoBehaviour
         {
 			k.SetCanMove(true);
         }
+        if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
+            agent.StartRecorders();
+        }
         m_TimeManager.StartRace();
     }
 
@@ -108,7 +113,6 @@ public class GameFlowManagerCustom : MonoBehaviour
            yield return new WaitForSecondsRealtime(1f);
         }
     }
-
 
     void Update()
     {
@@ -152,14 +156,7 @@ public class GameFlowManagerCustom : MonoBehaviour
         m_TimeManager.StopRace();
 
         if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
-            agent.enabled = false;
-            if (playerKart.TryGetComponent<StateRecorder>(out var staterecorder)) {
-                staterecorder.enabled = false;
-            }
-
-            if (playerKart.TryGetComponent<DemonstrationRecorder>(out var demorecorder)) {
-                demorecorder.Close();
-            }
+            agent.StopRecorders();
         }
 
 

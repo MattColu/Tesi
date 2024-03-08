@@ -1,12 +1,17 @@
+using System;
+using System.Configuration;
+using System.Runtime.Remoting.Messaging;
+using Google.Protobuf.WellKnownTypes;
 using UnityEngine;
 
 public class MenuOptions : MonoBehaviour {
     public static MenuOptions Instance;
-    private string Name;
-    private string t_Name = "";
-    private string UID;
-    private Color KartColor;
-    private Color t_Color = Color.red;
+    public string Name {get => _name; set => _name = value.Trim().ToLower();}
+    private string _name;
+    private string t_name = "";
+    public string UID {private set; get;}
+    public Color KartColor {get => _color; set => _color = value;}
+    private Color _color = Color.red;
 
     [SerializeField]
     private Transform MenuKartBody;
@@ -22,65 +27,54 @@ public class MenuOptions : MonoBehaviour {
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
-    public void SetName(string name) {
-        Instance.Name = name.Trim().ToLower();
-    }
 
-    public void SetColor(Color color) {
-        Instance.KartColor = color;
-    }
-
-    public Color GetColor() {
-        return KartColor;
-    }
-
-    public void SetUID() {
-        Instance.UID = System.Guid.NewGuid().ToString();
+    public void CreateUID() {
+        Instance.UID = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace('+', '-').Replace('/', '_');
     }
 
     public void OnEditNameField(string name) {
-        t_Name = name;
+        t_name = name;
     }
 
     public void OnEditColorSwatch(int color) {
         switch (color) {
             case 0:
-                t_Color = Color.red;
+                _color = Color.red;
                 break;
             case 1:
-                t_Color = Color.blue;
+                _color = Color.blue;
                 break;
             case 2:
-                t_Color = Color.green;
+                _color = Color.green;
                 break;
             case 3:
-                t_Color = Color.yellow;
+                _color = Color.yellow;
                 break;
             case 4:
-                t_Color = Color.magenta;
+                _color = Color.magenta;
                 break;
             case 5:
-                t_Color = Color.cyan;
+                _color = Color.cyan;
                 break;
             case 6:
-                t_Color = Color.white;
+                _color = Color.white;
                 break;
             case 7:
-                t_Color = Color.gray;
+                _color = Color.gray;
                 break;
             case 8:
-                t_Color = Color.black;
+                _color = Color.black;
                 break;
             default:
-                t_Color = Color.red;
+                _color = Color.red;
                 break;
         }
-        rend.material.color = t_Color;
+        rend.material.color = _color;
     }
 
     public void OnClickPlayButton() {
-        SetName(t_Name);
-        SetColor(t_Color);
-        SetUID();
+        Name = t_name;
+        KartColor = _color;
+        CreateUID();
     }
 }

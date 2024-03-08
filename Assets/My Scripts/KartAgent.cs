@@ -5,6 +5,8 @@ using Unity.MLAgents.Actuators;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using System;
+using KartGame.Custom.Demo;
+using Unity.MLAgents.Demonstrations;
 
 namespace KartGame.Custom.AI
 {
@@ -262,6 +264,53 @@ namespace KartGame.Custom.AI
                 if (keyboardInput.Brake) actionsOut.DiscreteActions.Array[0] = 2;
                 actionsOut.ContinuousActions.Array[0] = keyboardInput.TurnInput;
             }
+        }
+
+        public void SetupRecorders(bool firebase) {
+            if (MenuOptions.Instance != null) {
+                if (GetRecorders(out var stateRecorder, out var demonstrationRecorder, out var streamDemonstrationRecorder)) {
+                    if (firebase) {
+                        stateRecorder.toDisk = false;
+                        streamDemonstrationRecorder = gameObject.AddComponent<StreamDemonstrationRecorder>();
+                        stateRecorder.OnWriteQueue += (queue) => {FirebaseObject.UploadRecording(StateRecorder.ConvertToByteArray(queue), "state");};
+                        streamDemonstrationRecorder.OnRecorderClosed += (demo) => FirebaseObject.UploadRecording(demo, "demo");
+                    } else {
+                        string demoName = $"{MenuOptions.Instance.name}{MenuOptions.Instance.UID}/{Track.name}";
+                        stateRecorder.userFilename = demoName;
+                        demonstrationRecorder.DemonstrationName = demoName;
+                    }
+                }
+            }
+        }
+
+        public void StartRecorders() {
+            if (GetRecorders(out var stateRecorder, out var demonstrationRecorder, out var streamDemonstrationRecorder)) {
+                stateRecorder.enabled = true;
+                if (streamDemonstrationRecorder != null) {
+                    streamDemonstrationRecorder.StartRecording();
+                    demonstrationRecorder.Record = !streamDemonstrationRecorder.substitutesFileWriter;
+                }
+            } else {
+                demonstrationRecorder.Record = true;
+            }
+        }
+
+        public void StopRecorders() {
+            if (GetRecorders(out var stateRecorder, out var demonstrationRecorder, out var streamDemonstrationRecorder)) {
+                stateRecorder.enabled = false;
+                if (streamDemonstrationRecorder != null) {
+                    streamDemonstrationRecorder.enabled = false;
+                }
+                demonstrationRecorder.Record = false;
+                demonstrationRecorder.Close();
+            }
+        }
+
+        public bool GetRecorders(out StateRecorder stateRecorder, out DemonstrationRecorder demonstrationRecorder, out StreamDemonstrationRecorder streamDemonstrationRecorder) {
+            stateRecorder = GetComponent<StateRecorder>();
+            demonstrationRecorder = GetComponent<DemonstrationRecorder>();
+            streamDemonstrationRecorder = GetComponent<StreamDemonstrationRecorder>();
+            return stateRecorder && demonstrationRecorder;
         }
     }
 }

@@ -111,5 +111,9 @@ namespace KartGame.Custom.Demo
             OnWriteQueue?.Invoke(new(queue));
             queue.Clear();
         }
+
+        public static byte[] ConvertToByteArray(Queue<T> queue) {
+            return System.Text.Encoding.UTF8.GetBytes(JArray.Serialize(queue.ToArray()).CreateString());
+        }
     }
 }
