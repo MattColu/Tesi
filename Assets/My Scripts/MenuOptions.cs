@@ -1,12 +1,10 @@
 using System;
-using System.Configuration;
-using System.Runtime.Remoting.Messaging;
-using Google.Protobuf.WellKnownTypes;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class MenuOptions : MonoBehaviour {
     public static MenuOptions Instance;
-    public string Name {get => _name; set => _name = value.Trim().ToLower();}
+    public string Name {get => _name; set => _name = Regex.Replace(value.Trim().ToLower(), "[^a-zA-Z0-9 -]", "");}
     private string _name;
     private string t_name = "";
     public string UID {private set; get;}
@@ -29,7 +27,7 @@ public class MenuOptions : MonoBehaviour {
     }
 
     public void CreateUID() {
-        Instance.UID = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace('+', '-').Replace('/', '_');
+        Instance.UID = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace('+', '-').Replace('/', '_').Remove(22);
     }
 
     public void OnEditNameField(string name) {

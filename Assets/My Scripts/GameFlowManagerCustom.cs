@@ -4,6 +4,8 @@ using UnityEngine.Playables;
 using KartGame.KartSystems;
 using UnityEngine.SceneManagement;
 using KartGame.Custom.AI;
+using Cinemachine;
+using Unity.MLAgents;
 
 public class GameFlowManagerCustom : MonoBehaviour
 {
@@ -32,6 +34,7 @@ public class GameFlowManagerCustom : MonoBehaviour
 
     public bool autoFindKarts = true;
     public ArcadeKart playerKart;
+    public ArcadeKart dummyKart;
 
     ArcadeKart[] karts;
     ObjectiveManager m_ObjectiveManager;
@@ -69,7 +72,7 @@ public class GameFlowManagerCustom : MonoBehaviour
         }
 
         if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
-            agent.SetupRecorders(FirebaseObject.Instance != null);
+            agent.SetupRecorders();
         }
 
         //run race countdown animation
@@ -132,6 +135,9 @@ public class GameFlowManagerCustom : MonoBehaviour
                 // See if it's time to load the end scene (after the delay)
                 if (Time.time >= m_TimeLoadEndGameScene)
                 {
+                    if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
+                        agent.enabled = false;
+                    }
                     SceneManager.LoadScene(m_SceneToLoad);
                     gameState = GameState.Play;
                 }

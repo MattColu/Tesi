@@ -7,6 +7,8 @@ using Random = UnityEngine.Random;
 using System;
 using KartGame.Custom.Demo;
 using Unity.MLAgents.Demonstrations;
+using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace KartGame.Custom.AI
 {
@@ -100,6 +102,9 @@ namespace KartGame.Custom.AI
 
         void Update()
         {
+            if (Input.GetButtonDown("Reset")) {
+                Recover();
+            }
             if (m_EndEpisode) {
                 m_EndEpisode = false;
                 EndEpisode();
@@ -178,7 +183,7 @@ namespace KartGame.Custom.AI
             }
 
             sensor.AddObservation(m_Kart.LocalSpeed()/m_Kart.GetMaxSpeed());        //1
-            sensor.AddObservation(m_Rigidbody.rotation);                       //4
+            sensor.AddObservation(m_Rigidbody.rotation);                            //4
             sensor.AddObservation(toCheckpoint.normalized);                         //3
             sensor.AddObservation(Vector3.Dot(nextCheckpoint.transform.forward, transform.forward));//1
         }
@@ -225,6 +230,7 @@ namespace KartGame.Custom.AI
                     break;
             }
             m_Rigidbody.velocity = default;
+            m_Rigidbody.angularVelocity = default;
             m_Acceleration = false;
             m_Brake = false;
             m_Steering = 0f;
@@ -266,14 +272,26 @@ namespace KartGame.Custom.AI
             }
         }
 
-        public void SetupRecorders(bool firebase) {
+        void Recover() {
+            Transform lastCheckpointTransform = Track.Checkpoints[lastCheckpoint??0].transform;
+            transform.position = lastCheckpointTransform.position;
+            transform.rotation = lastCheckpointTransform.rotation;
+            m_Rigidbody.position = lastCheckpointTransform.position;
+            m_Rigidbody.rotation = lastCheckpointTransform.rotation;
+            m_Rigidbody.velocity = default;
+            m_Rigidbody.angularVelocity = default;
+        }
+
+        public void SetupRecorders() {
             if (MenuOptions.Instance != null) {
                 if (GetRecorders(out var stateRecorder, out var demonstrationRecorder, out var streamDemonstrationRecorder)) {
-                    if (firebase) {
+                    if (RESTManager.Instance != null) {
+                        string trackName = SceneManager.GetActiveScene().name;
+
                         stateRecorder.toDisk = false;
                         streamDemonstrationRecorder = gameObject.AddComponent<StreamDemonstrationRecorder>();
-                        stateRecorder.OnWriteQueue += (queue) => {FirebaseObject.UploadRecording(StateRecorder.ConvertToByteArray(queue), "state");};
-                        streamDemonstrationRecorder.OnRecorderClosed += (demo) => FirebaseObject.UploadRecording(demo, "demo");
+                        stateRecorder.OnWriteQueue += queue => StartCoroutine(RESTManager.UploadRecording(StateRecorder.ConvertToByteArray(queue), "state", trackName));
+                        streamDemonstrationRecorder.OnRecorderClosed += demo => StartCoroutine(RESTManager.UploadRecording(demo, "demo", trackName));
                     } else {
                         string demoName = $"{MenuOptions.Instance.name}{MenuOptions.Instance.UID}/{Track.name}";
                         stateRecorder.userFilename = demoName;

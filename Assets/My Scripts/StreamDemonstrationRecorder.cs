@@ -1,7 +1,6 @@
 using System;
 using System.IO;
-using System.IO.Abstractions;
-using Unity.MLAgents;
+using System.Threading.Tasks;
 using Unity.MLAgents.Demonstrations;
 using UnityEngine;
 

@@ -1,14 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Storage;
-using KartGame.Custom.Demo;
-using Leguar.TotalJSON;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class FirebaseObject : MonoBehaviour
 {
@@ -35,20 +29,20 @@ public class FirebaseObject : MonoBehaviour
         }
     }
 
-    public static async void UploadRecording (byte[] recording, string extension) {
-        string currentTrack = SceneManager.GetActiveScene().name;
+    public static Task UploadRecording (byte[] recording, string extension, string trackName) {
         if (Instance == null) throw new NullReferenceException("Firebase was not set up");
-        string savePath = $"{MenuOptions.Instance.Name} {MenuOptions.Instance.UID}/{currentTrack}.{extension}";
-        string shortName = $"{MenuOptions.Instance.Name}/{currentTrack}.{extension}";
-        await Instance.storageRef.Child(savePath)
+        string savePath = $"{MenuOptions.Instance.Name} {MenuOptions.Instance.UID}/{trackName}.{extension}";
+        string shortName = $"{MenuOptions.Instance.Name}/{trackName}.{extension}";
+        return Instance.storageRef.Child(savePath)
             .PutBytesAsync(recording)
             .ContinueWith((Task<StorageMetadata> task) => {
                 if (task.IsFaulted || task.IsCanceled) {
                     throw new Exception($"Failed to upload {shortName}: {task.Exception}");
                 } else {
-                    Debug.Log($"Successfully uploaded {shortName}: {task.Result.CreationTimeMillis} ms");
+                    Debug.Log($"Successfully uploaded {shortName}: {task.Result.CreationTimeMillis}");
                 }
             });
     }
+
     
 }
