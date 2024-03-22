@@ -13,7 +13,7 @@ public class MoveAndBounce : MonoBehaviour
     }
 
     void FixedUpdate() {
-        transform.position += force * Time.fixedDeltaTime;
+        transform.position += 1.5f * force * Time.fixedDeltaTime;
         if (transform.position.x >= coll.bounds.max.x || transform.position.x <= coll.bounds.min.x) {
             force.x = -force.x;
         }

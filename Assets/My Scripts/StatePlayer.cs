@@ -6,8 +6,8 @@ namespace KartGame.Custom.Demo {
             demoType = "state";
         }
 
-        protected override void Start() {
-            base.Start();
+        protected override void OnEnable() {
+            base.OnEnable();
             kart.SetCanMove(false);
         }
 
@@ -21,6 +21,8 @@ namespace KartGame.Custom.Demo {
 
         protected override void Cleanup() {
             base.Cleanup();
+            kart.Rigidbody.velocity = default;
+            kart.Rigidbody.angularVelocity = default;
             kart.SetCanMove(true);
         }
     }

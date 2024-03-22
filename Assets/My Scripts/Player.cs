@@ -1,21 +1,22 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
 using KartGame.KartSystems;
-using Leguar.TotalJSON;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KartGame.Custom.Demo
 {
     public class Player<T> : MonoBehaviour
     {
-        public string userFilename;
-        protected bool doneReading = false;
-        protected bool donePlaying = false;
+        protected bool doneReading;
+        protected bool donePlaying;
+        [SerializeField]
         protected string filename;
-        protected string filepath;
+        protected string demofolder;
+        [SerializeField]
+        protected string fullpath;
         protected string demoType = "";
         protected bool fromDisk = true;
 
@@ -24,22 +25,27 @@ namespace KartGame.Custom.Demo
         protected Queue<T> queue;
 
         protected virtual void Awake() {
-            filepath = Application.persistentDataPath + "/demos/";
+            demofolder = Application.persistentDataPath + "/demos/";
             if (!TryGetComponent<ArcadeKart>(out kart)) {
                 Debug.LogError($"No ArcadeKart component attached to this object ({name})");
             }
         }
 
-        protected virtual void Start() {
-            if (fromDisk || userFilename != "") {
+        protected virtual void OnEnable() {
+            doneReading = false;
+            donePlaying = false;
+            if (fromDisk || filename != "" || fullpath != "") {
                 ReadFromFileWrapper();
             }
             doneReading = true;
         }
 
+        protected virtual void Start() {}
+
         protected void FixedUpdate() {
             if (!doneReading) return;
             if (!donePlaying) {
+                if (queue == null) return;
                 if (queue.TryDequeue(out var queueElement)) {
                     ExecuteStep(queueElement);
                 } else {
@@ -55,31 +61,34 @@ namespace KartGame.Custom.Demo
         protected virtual void Cleanup() {}
         
         protected void ReadFromFileWrapper() {
-            filename = userFilename;
+            if (fullpath == "") {
+                if (!CheckValidPath(demofolder)) {
+                    return;
+                }
 
-            if (!CheckValidPath(filepath)) {
-                return;
+                if (filename == "") {
+                    filename = Directory.EnumerateFileSystemEntries(demofolder, $"*?.{demoType}").OrderByDescending(filename => File.GetLastWriteTime(filename)).First();
+                    filename = filename.Replace(demofolder, "");
+                }
+                
+                if (!filename.EndsWith($".{demoType}")) {
+                    filename += $".{demoType}";
+                }
+
+                fullpath = Path.Join(demofolder, filename);
             }
-            if (filename == "") {
-                filename = Directory.EnumerateFileSystemEntries(filepath, $"*?.{demoType}").OrderByDescending(filename => File.GetLastWriteTime(filename)).First();
-                filename = filename.Replace(filepath, "");
-            }
-            
-            if (!filename.EndsWith($".{demoType}")) {
-                filename += $".{demoType}";
-            }
-            if (!CheckValidFile(Path.Join(filepath, filename))) {
+
+            if (!CheckValidFile(fullpath)) {
                 return;
             }
             
             Debug.Log($"Reading from file {filename}...");
             
-            ReadFromFile();
-
-            Debug.Log("Done");
+            int lines = ReadFromFile();
+            Debug.Log($"Read {lines} timesteps");
         }
 
-        protected void ReadFromFile() {
+        /*protected void ReadFromFile() {
             try {
                 T[] data = JArray.ParseString(File.ReadAllText(Path.Join(filepath, filename))).Deserialize<T[]>();
                 queue = new Queue<T>(data);
@@ -88,9 +97,9 @@ namespace KartGame.Custom.Demo
             } catch (DeserializeException de) {
                 Debug.LogError($"Error deserializing from JSON: {de}");
             }
-        }
+        }*/
 
-        public static T[] ReadFromFile(string fullpath) {
+        /*public static T[] ReadFromFile(string fullpath) {
             T[] data;
             try {
                 data = JArray.ParseString(File.ReadAllText(fullpath)).Deserialize<T[]>();
@@ -102,7 +111,28 @@ namespace KartGame.Custom.Demo
                 data = null;
             }
             return data;
+        }*/
+
+        protected int ReadFromFile() {
+            try {
+                queue = new Queue<T>(ReadFromFile(fullpath));
+                return queue.Count;
+            } catch (Exception e){
+                Debug.LogError($"Error reading from \"{filename}\": {e}");
+                return 0;
+            }
         }
+
+        public void SetFullpath(string path) {
+            fullpath = path;
+        }
+
+        public static T[] ReadFromFile(string fullpath) {
+            using(MemoryStream stream = new(Convert.FromBase64String(File.ReadAllText(fullpath)))) {
+                return (T[]) new BinaryFormatter().Deserialize(stream);
+            }
+        }
+        
         public static bool CheckValidPath(string filepath) {
             if (!Directory.Exists(filepath)) {
                 Debug.LogError($"Directory {filepath} does not exist.");

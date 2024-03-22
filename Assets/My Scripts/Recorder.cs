@@ -4,6 +4,7 @@ using UnityEngine;
 using KartGame.KartSystems;
 using System.Collections.Generic;
 using Leguar.TotalJSON;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KartGame.Custom.Demo
 {
@@ -31,17 +32,12 @@ namespace KartGame.Custom.Demo
             if (!TryGetComponent<ArcadeKart>(out kart)) {
                 Debug.LogError($"No ArcadeKart component attached to this object ({name})");
             }
-
-            queue = new();
-        }
-
-        protected virtual void Start()
-        {
-            startTime = DateTime.Now;
         }
 
         protected void OnEnable() {
             recordCounter = 0;
+            queue = new();
+            startTime = DateTime.Now;
         }
         
         protected void OnDisable() {
@@ -112,8 +108,26 @@ namespace KartGame.Custom.Demo
             queue.Clear();
         }
 
-        public static byte[] ConvertToByteArray(Queue<T> queue) {
-            return System.Text.Encoding.UTF8.GetBytes(JArray.Serialize(queue.ToArray()).CreateString());
+        public void Split() {
+            OnDisable();
+            OnEnable();
+        }
+
+        public static byte[] ToByteArray(Queue<T> queue) {
+            using (MemoryStream stream = new()) {
+                new BinaryFormatter().Serialize(stream, queue.ToArray());
+                return stream.ToArray();
+            }
+
+            /*byte[] newArr = new byte[queue.Count * Marshal.SizeOf(typeof(T))];
+            GCHandle handle = GCHandle.Alloc(queue.ToArray(), GCHandleType.Pinned);
+            try {
+                IntPtr oldArrPointer = handle.AddrOfPinnedObject();
+                Marshal.Copy(oldArrPointer, newArr, 0, newArr.Length);
+            } finally {
+                if (handle.IsAllocated) handle.Free();
+            }
+            return newArr;*/
         }
     }
 }

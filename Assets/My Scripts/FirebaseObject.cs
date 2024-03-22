@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Threading.Tasks;
 using Firebase;
 using Firebase.Storage;
@@ -46,3 +46,4 @@ public class FirebaseObject : MonoBehaviour
 
     
 }
+*/

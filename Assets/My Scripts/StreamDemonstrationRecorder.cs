@@ -17,8 +17,6 @@ namespace KartGame.Custom.Demo {
         public event Action<byte[]> OnRecorderClosed;
 
         void Awake() {
-            m_Stream = new MemoryStream();
-            m_DemoWriter = new DemonstrationWriter(m_Stream);
             m_DemoRecorder = GetComponent<DemonstrationRecorder>();
             if (substitutesFileWriter) m_DemoRecorder.Close();
         }
@@ -32,14 +30,26 @@ namespace KartGame.Custom.Demo {
         }
 
         public void StartRecording() {
+            m_Stream = new MemoryStream();
+            m_DemoWriter = new DemonstrationWriter(m_Stream);
             wantsToAddWriter = true;
         }
 
-        void OnDisable() {
+        public void StopRecording() {
             m_DemoRecorder.RemoveDemonstrationWriterFromAgent(m_DemoWriter);
             m_DemoWriter.Close();
             OnRecorderClosed?.Invoke(m_Stream.ToArray());
             isWriterAdded = false;
+            StartRecording();
+        }
+
+        public void SplitRecording() {
+            StopRecording();
+            StartRecording();
+        }
+
+        void OnDisable() {
+            StopRecording();
         }
     }
 }

@@ -1,8 +1,12 @@
+using System;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace KartGame.Custom.Demo
 {
-    public struct StateData {
+    [Serializable]
+    public struct StateData: ISerializable {
+
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 velocity;
@@ -20,6 +24,33 @@ namespace KartGame.Custom.Demo
             rotation = rot;
             velocity = vel;
             angularVelocity = angVel;
+        }
+
+        public StateData(SerializationInfo info, StreamingContext context) {
+            position = new Vector3(info.GetSingle("posx"), info.GetSingle("posy"), info.GetSingle("posz"));
+            rotation = new Quaternion(info.GetSingle("rotx"), info.GetSingle("roty"), info.GetSingle("rotz"), info.GetSingle("rotw"));
+            velocity = new Vector3(info.GetSingle("velx"), info.GetSingle("vely"), info.GetSingle("velz"));
+            angularVelocity = new Vector3(info.GetSingle("angvelx"), info.GetSingle("angvely"), info.GetSingle("angvelz"));
+        }
+
+        public readonly void GetObjectData(SerializationInfo info, StreamingContext context) {
+            info.AddValue("posx", position.x);
+            info.AddValue("posy", position.y);
+            info.AddValue("posz", position.z);
+            info.AddValue("rotx", rotation.x);
+            info.AddValue("roty", rotation.y);
+            info.AddValue("rotz", rotation.z);
+            info.AddValue("rotw", rotation.w);
+            info.AddValue("velx", velocity.x);
+            info.AddValue("vely", velocity.y);
+            info.AddValue("velz", velocity.z);
+            info.AddValue("angvelx", angularVelocity.x);
+            info.AddValue("angvely", angularVelocity.y);
+            info.AddValue("angvelz", angularVelocity.z);
+        }
+
+        public override readonly string ToString() {
+            return $"Pos: {position} Rot: {rotation} Vel: {velocity} AngVel: {angularVelocity}";
         }
     }
 

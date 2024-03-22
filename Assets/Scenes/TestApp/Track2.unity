@@ -1802,6 +1802,18 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 255042919}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &255042922 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 555101461293863054, guid: bb73f469980dc044582a722d298f4a3b,
+    type: 3}
+  m_PrefabInstance: {fileID: 255042919}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc3359f66b6cf804e8de7505a8308f85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &256071243 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 40299501215355906, guid: 230dd9257fca2c249b555f6edd3c8e14,
@@ -7170,7 +7182,7 @@ PrefabInstance:
     - target: {fileID: 2158116268266510159, guid: a6c2a30e4a2cf904e90103af9d9b41dd,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.001
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 2158116268266510159, guid: a6c2a30e4a2cf904e90103af9d9b41dd,
         type: 3}
@@ -13138,6 +13150,11 @@ PrefabInstance:
       propertyPath: notificationLapsRemainingThreshold
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5402234358615745790, guid: 9982527ae59625f4db19031743e8e79d,
+        type: 3}
+      propertyPath: agent
+      value: 
+      objectReference: {fileID: 255042922}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Profiling;
 
 public class RESTManager : MonoBehaviour
 {
@@ -19,30 +21,26 @@ public class RESTManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    void Start() {
-        //StartCoroutine(CheckConnection());
-    }
-
-    IEnumerator CheckConnection() {
-        using (UnityWebRequest www = UnityWebRequest.Get(storageURL)) {
-            yield return www.SendWebRequest();
-            if (www.result != UnityWebRequest.Result.Success) {
-                Debug.LogError($"{www.error}");
-            }
+    public static IEnumerator UploadRecording (byte[] recording, string extension, string trackName, int lap = -1) {
+        string savePath;
+        string shortName;
+        if (lap == -1) {
+            savePath = $"{MenuOptions.Instance.Name}_{MenuOptions.Instance.UID}%2F{trackName}.{extension}";
+            shortName = $"{MenuOptions.Instance.Name}/{trackName}.{extension}";
+        } else {
+            savePath = $"{MenuOptions.Instance.Name}_{MenuOptions.Instance.UID}%2F{trackName}%2F{trackName}-{lap}.{extension}";
+            shortName = $"{MenuOptions.Instance.Name}/{trackName}/{lap}.{extension}";
         }
-    }
-
-    public static IEnumerator UploadRecording (byte[] recording, string extension, string trackName) {
-        if (Instance == null) throw new NullReferenceException("Firebase was not set up");
-        string savePath = $"{MenuOptions.Instance.Name}_{MenuOptions.Instance.UID}%2F{trackName}.{extension}";
-        string shortName = $"{MenuOptions.Instance.Name}/{trackName}.{extension}";
-        using (UnityWebRequest www = UnityWebRequest.Post($"{storageURL}%2F{savePath}", Encoding.UTF8.GetString(recording), "application/octet-stream")) {
+        Task<string> t = Task.Run(() => {return Convert.ToBase64String(recording);});
+        yield return new WaitUntil(() => t.IsCompleted);
+        using (UnityWebRequest www = UnityWebRequest.Post($"{storageURL}%2F{savePath}", t.Result, "application/octet-stream")) {
             yield return www.SendWebRequest();
             if (www.result != UnityWebRequest.Result.Success) {
                 Debug.LogError($"Failed to upload {shortName}: {www.error}");
             } else {
                 Debug.Log($"Successfully uploaded {shortName}: {www.result}");
             }
+
         }
     }
 }

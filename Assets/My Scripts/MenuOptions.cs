@@ -27,7 +27,8 @@ public class MenuOptions : MonoBehaviour {
     }
 
     public void CreateUID() {
-        Instance.UID = Convert.ToBase64String(Guid.NewGuid().ToByteArray()).Replace('+', '-').Replace('/', '_').Remove(22);
+        
+        Instance.UID = DateTime.Now.ToString("s");
     }
 
     public void OnEditNameField(string name) {

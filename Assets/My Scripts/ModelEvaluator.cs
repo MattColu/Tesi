@@ -1,4 +1,4 @@
-using System.Collections;
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using Unity.MLAgents.Policies;
@@ -188,3 +188,4 @@ namespace KartGame.Custom {
         }
     }
 }
+#endif

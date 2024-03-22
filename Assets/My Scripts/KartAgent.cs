@@ -7,7 +7,6 @@ using Random = UnityEngine.Random;
 using System;
 using KartGame.Custom.Demo;
 using Unity.MLAgents.Demonstrations;
-using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 
 namespace KartGame.Custom.AI
@@ -86,12 +85,15 @@ namespace KartGame.Custom.AI
 
         private int? lastCheckpoint = null;
 
+        private int lapCount;
+
         public override void Initialize()
         {
             m_Kart = GetComponent<ArcadeKart>();
             m_Rigidbody = GetComponent<Rigidbody>();
             if (AgentSensorTransform == null) AgentSensorTransform = transform;
             m_Keyboard = GetComponent<KeyboardInput>();
+            lapCount = 0;
         }
 
         void Start()
@@ -290,8 +292,8 @@ namespace KartGame.Custom.AI
 
                         stateRecorder.toDisk = false;
                         streamDemonstrationRecorder = gameObject.AddComponent<StreamDemonstrationRecorder>();
-                        stateRecorder.OnWriteQueue += queue => StartCoroutine(RESTManager.UploadRecording(StateRecorder.ConvertToByteArray(queue), "state", trackName));
-                        streamDemonstrationRecorder.OnRecorderClosed += demo => StartCoroutine(RESTManager.UploadRecording(demo, "demo", trackName));
+                        stateRecorder.OnWriteQueue += queue => StartCoroutine(RESTManager.UploadRecording(StateRecorder.ToByteArray(queue), "state", trackName, lapCount));
+                        streamDemonstrationRecorder.OnRecorderClosed += demo => StartCoroutine(RESTManager.UploadRecording(demo, "demo", trackName, lapCount));
                     } else {
                         string demoName = $"{MenuOptions.Instance.name}{MenuOptions.Instance.UID}/{Track.name}";
                         stateRecorder.userFilename = demoName;
@@ -322,6 +324,17 @@ namespace KartGame.Custom.AI
                 demonstrationRecorder.Record = false;
                 demonstrationRecorder.Close();
             }
+        }
+
+        public void SplitRecorders() {
+            if (GetRecorders(out var stateRecorder, out var demonstrationRecorder, out var streamDemonstrationRecorder)) {
+                if (streamDemonstrationRecorder != null) {
+                    streamDemonstrationRecorder.SplitRecording();
+                }
+                stateRecorder.Split();
+                demonstrationRecorder.Close();
+            }
+            lapCount++;
         }
 
         public bool GetRecorders(out StateRecorder stateRecorder, out DemonstrationRecorder demonstrationRecorder, out StreamDemonstrationRecorder streamDemonstrationRecorder) {

@@ -1,9 +1,9 @@
+#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Linq;
 using KartGame.Custom.AI;
 using Leguar.TotalJSON;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -94,3 +94,4 @@ namespace KartGame.Custom {
         }
     }
 }
+#endif

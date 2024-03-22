@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1902712905063461279}
-  - component: {fileID: 3368944771209025263}
+  - component: {fileID: 5402234358615745790}
   - component: {fileID: 1902712905063461278}
   m_Layer: 0
   m_Name: ObjectiveLaps
@@ -25,14 +25,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1902712905063461265}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -22.843828, y: 23.447208, z: -51.910393}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3368944771209025263
+--- !u!114 &5402234358615745790
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,20 +42,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 1902712905063461265}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee5fe0e5a8b366e468255c72bbd5ec0b, type: 3}
+  m_Script: {fileID: 11500000, guid: 216bd533ee91bad4085c4c1b6dd891ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gameMode: 2
   targetName: Lap
-  title: Complete all the laps
+  title: Complete 5 laps
   description: Laps
   isOptional: 0
   delayVisible: 5
   isTimed: 0
-  totalTimeInSecs: 100
+  totalTimeInSecs: 0
   displayMessage: {fileID: 1902712905063461278}
-  lapsToComplete: 1
+  lapsToComplete: 5
   notificationLapsRemainingThreshold: 1
+  agent: {fileID: 0}
 --- !u!114 &1902712905063461278
 MonoBehaviour:
   m_ObjectHideFlags: 0
