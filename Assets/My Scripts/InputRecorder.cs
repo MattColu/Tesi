@@ -1,5 +1,4 @@
 using KartGame.KartSystems;
-using UnityEngine;
 
 namespace KartGame.Custom.Demo
 {

@@ -88,31 +88,6 @@ namespace KartGame.Custom.Demo
             Debug.Log($"Read {lines} timesteps");
         }
 
-        /*protected void ReadFromFile() {
-            try {
-                T[] data = JArray.ParseString(File.ReadAllText(Path.Join(filepath, filename))).Deserialize<T[]>();
-                queue = new Queue<T>(data);
-            } catch (ParseException e) {
-                Debug.LogError($"Error parsing \"{filename}\": {e}");
-            } catch (DeserializeException de) {
-                Debug.LogError($"Error deserializing from JSON: {de}");
-            }
-        }*/
-
-        /*public static T[] ReadFromFile(string fullpath) {
-            T[] data;
-            try {
-                data = JArray.ParseString(File.ReadAllText(fullpath)).Deserialize<T[]>();
-            } catch (ParseException e) {
-                Debug.LogError($"Error parsing \"{fullpath}\": {e}");
-                data = null;
-            } catch (DeserializeException de) {
-                Debug.LogError($"Error deserializing from JSON: {de}");
-                data = null;
-            }
-            return data;
-        }*/
-
         protected int ReadFromFile() {
             try {
                 queue = new Queue<T>(ReadFromFile(fullpath));

@@ -163,7 +163,6 @@ public class GameFlowManagerCustom : MonoBehaviour
             agent.StopRecorders();
         }
 
-
         // Remember that we need to load the appropriate end scene after a delay
         gameState = win ? GameState.Won : GameState.Lost;
         endGameFadeCanvasGroup.gameObject.SetActive(true);

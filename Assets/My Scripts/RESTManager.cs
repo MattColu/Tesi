@@ -1,13 +1,10 @@
 using System;
 using System.Collections;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.Profiling;
 
-public class RESTManager : MonoBehaviour
-{
+public class RESTManager : MonoBehaviour {
     public static RESTManager Instance;
 
     private const string storageURL = "https://firebasestorage.googleapis.com/v0/b/tesi-10fe5.appspot.com/o/recordings";
@@ -40,7 +37,6 @@ public class RESTManager : MonoBehaviour
             } else {
                 Debug.Log($"Successfully uploaded {shortName}: {www.result}");
             }
-
         }
     }
 }

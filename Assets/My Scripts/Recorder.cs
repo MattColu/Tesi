@@ -3,22 +3,22 @@ using System.IO;
 using UnityEngine;
 using KartGame.KartSystems;
 using System.Collections.Generic;
-using Leguar.TotalJSON;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KartGame.Custom.Demo
 {
     public class Recorder<T> : MonoBehaviour
     {
-        public string userFilename;
-
         [Tooltip("Number of Fixed Timesteps to record (0 records until the editor is stopped)")]
         public float DemoDuration;
         public bool toDisk;
 
         protected int recordCounter;
-        protected string filepath;
-        protected string filename;
+        protected string demofolder;
+        [SerializeField]
+        public string filename;
+        [SerializeField]
+        protected string fullpath;
         protected DateTime startTime; 
         protected string demoType = "";
 
@@ -35,17 +35,14 @@ namespace KartGame.Custom.Demo
         }
 
         protected void OnEnable() {
+            demofolder = Application.persistentDataPath + "/demos/";
             recordCounter = 0;
             queue = new();
             startTime = DateTime.Now;
         }
         
         protected void OnDisable() {
-            if (toDisk) {
-                WriteToFileWrapper();
-            } else {
-                Write();
-            }
+            Write();
         }
 
         protected virtual void FixedUpdate() {
@@ -60,45 +57,28 @@ namespace KartGame.Custom.Demo
             queue.Enqueue(queueElement);
         }
 
-        protected void WriteToFileWrapper() {
-            filename = userFilename;
-            filepath = Application.persistentDataPath + "/demos/";
-            bool alreadyExists = false;
-
-            if (File.Exists(Path.Combine(filepath, filename)) || File.Exists(Path.Combine(filepath, filename+$".{demoType}"))) {
-                Debug.LogWarning($"File \"{filename}\" already exists");
-                alreadyExists = true;
+        protected void SetupWriteToFile() {
+            if (fullpath != "") {
+                demofolder = Path.GetDirectoryName(fullpath);
+                filename = Path.GetFileNameWithoutExtension(fullpath);
+            }
+            
+            if (!Directory.Exists(demofolder)) {
+                Debug.LogWarning($"Folder {demofolder} does not exist, it will be created.");
+                Directory.CreateDirectory(demofolder);
             }
 
-            if (!Directory.Exists(filepath)) {
-                Debug.LogWarning($"Folder {filepath} does not exist, it will be created.");
-                Directory.CreateDirectory(filepath);
-                Debug.Log("Done");
-            }
+            filename += startTime.ToString("yyyyMMdd'-'HHmmss") + $".{demoType}";
 
-            if (filename == "") {
-                filename = startTime.ToString("yyyyMMdd'-'HHmmss") + $".{demoType}";
-            }
-
-            if (!filename.EndsWith($".{demoType}")) {
-                if (alreadyExists) filename += "_";
-                filename += $".{demoType}";
-            } else {
-                filename = filename.Split($".{demoType}")[0] + "_" + $".{demoType}";
-            }
-
-            Write();
-            Debug.Log("Done");
+            fullpath = Path.Combine(demofolder, filename);
         }
 
         protected virtual async void Write() {
             if (queue == null || queue.Count == 0) return;
             if (toDisk) {
+                SetupWriteToFile();
                 try {
-                    await File.WriteAllTextAsync(Path.Join(filepath, filename), JArray.Serialize(queue.ToArray()).CreateString());
-                } catch (SerializeException se) {
-                    Debug.LogError($"Error serializing to JSON: {se}");
-                    return;
+                    await File.WriteAllTextAsync(fullpath, Convert.ToBase64String(ToByteArray(queue)));
                 } catch (Exception e) {
                     Debug.LogError($"Error writing to \"{filename}\": {e}");
                     return;
@@ -118,16 +98,6 @@ namespace KartGame.Custom.Demo
                 new BinaryFormatter().Serialize(stream, queue.ToArray());
                 return stream.ToArray();
             }
-
-            /*byte[] newArr = new byte[queue.Count * Marshal.SizeOf(typeof(T))];
-            GCHandle handle = GCHandle.Alloc(queue.ToArray(), GCHandleType.Pinned);
-            try {
-                IntPtr oldArrPointer = handle.AddrOfPinnedObject();
-                Marshal.Copy(oldArrPointer, newArr, 0, newArr.Length);
-            } finally {
-                if (handle.IsAllocated) handle.Free();
-            }
-            return newArr;*/
         }
     }
 }

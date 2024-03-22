@@ -296,7 +296,7 @@ namespace KartGame.Custom.AI
                         streamDemonstrationRecorder.OnRecorderClosed += demo => StartCoroutine(RESTManager.UploadRecording(demo, "demo", trackName, lapCount));
                     } else {
                         string demoName = $"{MenuOptions.Instance.name}{MenuOptions.Instance.UID}/{Track.name}";
-                        stateRecorder.userFilename = demoName;
+                        stateRecorder.filename = demoName;
                         demonstrationRecorder.DemonstrationName = demoName;
                     }
                 }

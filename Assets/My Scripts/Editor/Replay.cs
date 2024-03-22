@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Cinemachine;
 using KartGame.Custom;
 using KartGame.Custom.AI;
 using KartGame.Custom.Demo;
