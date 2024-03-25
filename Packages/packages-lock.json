@@ -127,24 +127,16 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ml-agents": {
-      "version": "file:D:/Program Files (x86)/Unity/mlagents/ml-agents/com.unity.ml-agents",
+      "version": "3.0.0-exp.1",
       "depth": 0,
-      "source": "local",
+      "source": "registry",
       "dependencies": {
         "com.unity.sentis": "1.2.0-exp.2",
         "com.unity.modules.imageconversion": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0",
         "com.unity.modules.physics": "1.0.0"
-      }
-    },
-    "com.unity.ml-agents.extensions": {
-      "version": "file:D:/Program Files (x86)/Unity/mlagents/ml-agents/com.unity.ml-agents.extensions",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {
-        "com.unity.ml-agents": "3.0.0-exp.1",
-        "com.unity.modules.physics": "1.0.0"
-      }
+      },
+      "url": "https://packages.unity.com"
     },
     "com.unity.nuget.mono-cecil": {
       "version": "1.11.4",
