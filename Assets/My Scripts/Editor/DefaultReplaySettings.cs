@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace KartGame.Custom.Demo {   
     class ReplaySettings: ScriptableObject {
-        public const string k_ReplaySettingsPath = "Assets/My Scripts/Editor/ReplaySettings.asset";
+        public const string k_ReplaySettingsPath = "Assets/My Scripts/Editor/DefaultReplaySettings.asset";
 
         [SerializeField]
         #pragma warning disable 0414

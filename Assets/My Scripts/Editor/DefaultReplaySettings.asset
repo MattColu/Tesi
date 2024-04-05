@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 48ae14e04e1c464479da6d7309fce36f, type: 3}
-  m_Name: ReplaySettings
+  m_Name: DefaultReplaySettings
   m_EditorClassIdentifier: 
   m_TrackFolder: Assets/Scenes/TestApp
   m_DefaultKart: {fileID: 4810912518991602694, guid: 19954de30401f73428254541a9ad156e,
