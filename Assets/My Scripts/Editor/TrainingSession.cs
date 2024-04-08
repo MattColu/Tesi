@@ -16,12 +16,16 @@ namespace KartGame.Custom.Training {
         public int agentInstances;
         public string trainer;
         public string runId;
+
+        public override readonly string ToString() {
+            return $"Track: {track.name} - {trackInstances} instances\nAgent: {agent.name} - {agentInstances} instances\nTrainer:  {trainer}\nRunId: {runId}";
+        }
     }
 
     [Serializable]
     public struct TrainingSession: IEnumerable<TrainingSettings> {
         public TrainingSettings[] settings;
-        private string condaStartScript;
+        public string condaStartScript;
 
         public TrainingSession(TrainingSettings[] settings, string condaStartScript) {
             this.settings = settings;
@@ -49,9 +53,11 @@ namespace KartGame.Custom.Training {
                 if (settings[i].agent == null) throw new ArgumentNullException("Agent");
                 if (settings[i].trackInstances == 0) throw new ArgumentNullException("Track Instances");
                 if (settings[i].agentInstances == 0) throw new ArgumentNullException("Agent Instances");
-                if (settings[i].trainer == "" || !File.Exists(settings[i].trainer)) throw new ArgumentNullException("Trainer");
+                if (settings[i].trainer == "") throw new ArgumentNullException("Trainer");
                 if (settings[i].runId == "") throw new ArgumentNullException("RunID");
-                if (condaStartScript == "" || !File.Exists(condaStartScript)) throw new ArgumentNullException("Conda activation script");
+                if (condaStartScript == "") throw new ArgumentNullException("Conda activation script");
+                //if (!File.Exists(settings[i].trainer)) throw new FileNotFoundException(settings[i].trainer);
+                if (!File.Exists(condaStartScript)) throw new FileNotFoundException(condaStartScript);
             }
             return true;
         }
