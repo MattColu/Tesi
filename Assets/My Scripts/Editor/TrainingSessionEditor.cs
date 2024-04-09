@@ -21,6 +21,7 @@ public class TrainingSessionEditor : EditorWindow
     private SerializedObject serializedSession;
     private Track[] instantiatedTracks;
     private SessionFSM state;
+    private int sessionIndex;
 
     [MenuItem ("MLAgents/Start Tensorboard", priority = 50)]
     public static void StartTensorboard() {
@@ -35,9 +36,13 @@ public class TrainingSessionEditor : EditorWindow
         GetWindow(typeof(TrainingSessionEditor));
     }
 
-    public void OnEnable() {
-        EditorApplication.playModeStateChanged += (state) => {ManageFSM(state);UnityEngine.Debug.Log(state);};
+    public void Awake() {
         state = SessionFSM.Stopped;
+        sessionIndex = 0;
+    }
+
+    public void OnEnable() {
+        EditorApplication.playModeStateChanged += (state) => ManageStateChange(state);
         ScriptableObject target = this;
         serializedSession = new SerializedObject(target);
     }
@@ -50,6 +55,9 @@ public class TrainingSessionEditor : EditorWindow
         EditorGUILayout.PropertyField(settingsProperty, includeChildren: true);
         serializedSession.ApplyModifiedProperties();
 
+        EditorGUILayout.LabelField($"State: {state}");
+        EditorGUILayout.LabelField($"Index: {sessionIndex}");
+        
         EditorGUILayout.BeginHorizontal();
         
         if (GUILayout.Button("Save")) {
@@ -67,22 +75,49 @@ public class TrainingSessionEditor : EditorWindow
         }
         EditorGUILayout.EndHorizontal();
         if (GUILayout.Button("Start Training")) {
-            session.Check();
-            EditorCoroutineUtility.StartCoroutine(ExecuteSession(), this);
+            if (session.Check()) {
+                state = SessionFSM.Started;
+            }
         }
     }
 
-    private IEnumerator ExecuteSession() {
-        state = SessionFSM.Started;
-        foreach (var settings in session) {
-            SetupTrainingScene(settings);
-            LaunchTrainer(session.GetCondaScript(), settings.trainer, settings.runId);
-            yield return EditorCoroutineUtility.StartCoroutineOwnerless(DelayedEnterPlaymode(5f));
-            UnityEngine.Debug.Log("After DelayedEnterPlaymode");
-            yield return new WaitUntil(() => state == SessionFSM.Waiting);
-            UnityEngine.Debug.Log("After WaitUntil");
+    private void Update() {
+        switch (state) {
+            case SessionFSM.Training:
+            case SessionFSM.Stopped:
+            case SessionFSM.Waiting:
+                return;
+            case SessionFSM.Started:
+                if (sessionIndex >= session.Length) {
+                    Awake();
+                    return;
+                }
+                EditorCoroutineUtility.StartCoroutine(Execute(), this);
+                state = SessionFSM.Waiting;
+            break;
         }
-        state = SessionFSM.Stopped;
+    }
+
+    private IEnumerator Execute() {
+        SetupTrainingScene(session[sessionIndex]);
+        LaunchTrainer(session.GetCondaScript(), session[sessionIndex].trainer, session[sessionIndex].runId);
+        yield return EditorCoroutineUtility.StartCoroutineOwnerless(DelayedEnterPlaymode(10f));
+    }
+
+    private void ManageStateChange(PlayModeStateChange stateChange) {
+        switch (stateChange) {
+            case PlayModeStateChange.ExitingEditMode:
+                if (state == SessionFSM.Waiting) {
+                    state = SessionFSM.Training;
+                }
+            break;
+            case PlayModeStateChange.ExitingPlayMode:
+                if (state == SessionFSM.Training) {
+                    sessionIndex++;
+                    state = SessionFSM.Started;
+                }
+            break;
+        }
     }
 
     private void SetupTrainingScene(TrainingSettings settings) {
@@ -123,26 +158,11 @@ public class TrainingSessionEditor : EditorWindow
         EditorApplication.EnterPlaymode();
     }
     
-    private void ManageFSM(PlayModeStateChange stateChange) {
-        switch (stateChange) {
-            case PlayModeStateChange.EnteredPlayMode:
-                if (state == SessionFSM.Started || state == SessionFSM.Waiting) {
-                    state = SessionFSM.Training;
-                }
-            break;
-            case PlayModeStateChange.EnteredEditMode:
-                if (state == SessionFSM.Training) {
-                    state = SessionFSM.Waiting;
-                }
-            break;
-        }
-    }
-
     public static void LaunchTrainer(string condaStartScript, string trainerName, string runId) {
         using (Process trainer = new()) {
             trainer.StartInfo.FileName = $"{Directory.GetParent(Application.dataPath)}/Training/start_training.bat";
             trainer.StartInfo.UseShellExecute = true;
-            trainer.StartInfo.Arguments = $"{condaStartScript} {trainerName} {runId}";
+            trainer.StartInfo.Arguments = $"{condaStartScript} trainers/{trainerName} {runId}";
             trainer.Start();
         }
     }
@@ -163,5 +183,4 @@ public class TrainingSessionEditor : EditorWindow
             lh.Start();
         }
     }
-
 }

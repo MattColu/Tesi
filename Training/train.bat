@@ -1,1 +1,0 @@
-mlagents-learn %1 --run-id %2 --time-scale 1 %3 %4

@@ -25,7 +25,22 @@ namespace KartGame.Custom.Training {
     [Serializable]
     public struct TrainingSession: IEnumerable<TrainingSettings> {
         public TrainingSettings[] settings;
-        public string condaStartScript;
+        private string condaStartScript;
+
+        public int Length {
+            get {
+                if (settings == null) {
+                    return 0;
+                } else {
+                    return settings.Length;
+                }
+            }
+        }
+
+        public TrainingSettings this[int index] {
+            get => settings[index];
+            set => settings[index] = value;
+        }
 
         public TrainingSession(TrainingSettings[] settings, string condaStartScript) {
             this.settings = settings;
@@ -56,7 +71,7 @@ namespace KartGame.Custom.Training {
                 if (settings[i].trainer == "") throw new ArgumentNullException("Trainer");
                 if (settings[i].runId == "") throw new ArgumentNullException("RunID");
                 if (condaStartScript == "") throw new ArgumentNullException("Conda activation script");
-                //if (!File.Exists(settings[i].trainer)) throw new FileNotFoundException(settings[i].trainer);
+                if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", settings[i].trainer))) throw new FileNotFoundException(settings[i].trainer);
                 if (!File.Exists(condaStartScript)) throw new FileNotFoundException(condaStartScript);
             }
             return true;
@@ -95,6 +110,11 @@ namespace KartGame.Custom.Training {
 
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
+        }
+
+        public ref TrainingSettings ElementAt(int index)
+        {
+            throw new NotImplementedException();
         }
     }
 }

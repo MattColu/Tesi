@@ -10,13 +10,14 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
-#Checkpoints and training results
+# Checkpoints and training results
 [Rr]esults/
 
-#Timers
+# Timers
 /Assets/ML-Agents/Timers/
 
-Firebase/
+# Machine-specific settings
+/Assets/My\ Scripts/Editor/*.asset
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
