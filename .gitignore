@@ -13,6 +13,9 @@
 # Checkpoints and training results
 [Rr]esults/
 
+# Downloaded demos
+[Dd]emos/
+
 # Timers
 /Assets/ML-Agents/Timers/
 

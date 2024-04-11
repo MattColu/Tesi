@@ -84,6 +84,10 @@ namespace KartGame.Custom.Training {
             return condaStartScript;
         }
 
+        public void ResetCondaScript() {
+            condaStartScript = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_CondaActivateScript").stringValue;
+        }
+
         public static TrainingSession FromFile(string file) {
             TrainingSession s = new(null, "");
             object boxedS = s;                  //https://docs.unity3d.com/2023.2/Documentation/ScriptReference/EditorJsonUtility.FromJsonOverwrite.html

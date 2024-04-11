@@ -15,7 +15,7 @@ public class Replay : EditorWindow
     private Track track;
     private string filepath;
      
-    [MenuItem ("MLAgents/Replay Demo", priority = 40)]
+    [MenuItem ("MLAgents/Replay (State) Demo", priority = 31)]
     public static void ShowWindow() {
         GetWindow(typeof(Replay));
     }

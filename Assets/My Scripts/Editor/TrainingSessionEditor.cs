@@ -48,13 +48,23 @@ public class TrainingSessionEditor : EditorWindow
     }
 
     public void OnGUI() {
+        EditorGUILayout.BeginVertical();
         GUILayout.Label("Training Session Settings", EditorStyles.boldLabel);
         serializedSession.Update();
         SerializedProperty settingsProperty = serializedSession.FindProperty("session");
 
         EditorGUILayout.PropertyField(settingsProperty, includeChildren: true);
         serializedSession.ApplyModifiedProperties();
-
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"Conda: {session.GetCondaScript()}");
+        if (GUILayout.Button("Edit")) {
+            EditorUtility.OpenPropertyEditor(AssetDatabase.LoadAssetAtPath<Object>("Assets/My Scripts/Editor/DefaultTrainingSettings.asset"));
+        }
+        if (GUILayout.Button("↻")) {
+            session.ResetCondaScript();
+            serializedSession.Update();
+        }
+        EditorGUILayout.EndHorizontal();
         EditorGUILayout.LabelField($"State: {state}");
         EditorGUILayout.LabelField($"Index: {sessionIndex}");
         
@@ -79,6 +89,7 @@ public class TrainingSessionEditor : EditorWindow
                 state = SessionFSM.Started;
             }
         }
+        EditorGUILayout.EndVertical();
     }
 
     private void Update() {

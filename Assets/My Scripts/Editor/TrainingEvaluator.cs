@@ -30,7 +30,7 @@ public class TrainingEvaluator: EditorWindow
     private ModelEvaluator evaluatorInstance;
     private Track trackInstance;
     
-    [MenuItem ("MLAgents/Evaluate Model", priority = 20)]
+    [MenuItem ("MLAgents/Evaluate Model", priority = 11)]
     public static void ShowWindow() {
         GetWindow(typeof(TrainingEvaluator));
     }
