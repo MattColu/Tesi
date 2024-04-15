@@ -1,0 +1,1 @@
+call %1 && conda activate mlagents && cd Assets/ML-Agents/Training && tensorboard --logdir results

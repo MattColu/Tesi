@@ -19,7 +19,8 @@ namespace KartGame.Custom.AI
     public enum AgentMode
     {
         Training,
-        Inferencing
+        Inferencing,
+        Evaluating
     }
 
     /// <summary>
@@ -215,10 +216,10 @@ namespace KartGame.Custom.AI
                 case AgentMode.Training:
                     lastCheckpoint = Random.Range(0, Track.Checkpoints.Length - 1);
                     var collider = Track.Checkpoints[(int)lastCheckpoint];
-                    transform.localRotation = collider.transform.rotation;
-                    transform.position = collider.transform.position;
-                    m_Rigidbody.rotation = collider.transform.rotation;
-                    m_Rigidbody.position = collider.transform.position;                    
+                    transform.localRotation = collider.transform.rotation;  // UNFORTUNATELY
+                    transform.position = collider.transform.position;       // THIS
+                    m_Rigidbody.rotation = collider.transform.rotation;     // IS
+                    m_Rigidbody.position = collider.transform.position;     // NECESSARY             
                     break;
                 case AgentMode.Inferencing:
                     lastCheckpoint = null;
@@ -228,6 +229,8 @@ namespace KartGame.Custom.AI
                     m_Rigidbody.rotation = spawnpoint.rotation;
                     m_Rigidbody.position = spawnpoint.position;
                     break;
+                case AgentMode.Evaluating:
+                    return;
                 default:
                     break;
             }
@@ -240,7 +243,10 @@ namespace KartGame.Custom.AI
 
         public void OnEpisodeBegin(int nextCheckpoint, Vector3 position, Quaternion rotation, Vector3 initialVelocity, Vector3 initialAngVelocity) {
             lastCheckpoint = (nextCheckpoint - 1) % Track.Checkpoints.Length;
-            transform.SetPositionAndRotation(position, rotation);
+            transform.rotation = rotation;
+            transform.position = position;
+            m_Rigidbody.rotation = rotation;
+            m_Rigidbody.position = position;
             m_Rigidbody.velocity = initialVelocity;
             m_Rigidbody.angularVelocity = initialAngVelocity;
             m_Acceleration = false;

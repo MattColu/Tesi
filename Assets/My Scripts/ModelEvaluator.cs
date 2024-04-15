@@ -16,8 +16,8 @@ namespace KartGame.Custom {
 
     public class ModelEvaluator : MonoBehaviour
     {
-        [SerializeField] private string demoName;
-        [SerializeField] private ArcadeKart MLAgentPrefab;
+        [SerializeField] private string demoFilepath;
+        [SerializeField] private KartAgent MLAgentPrefab;
         [SerializeField] private ModelAsset MLAgentTrainedModel;
         [SerializeField] private Track track;
 
@@ -33,8 +33,7 @@ namespace KartGame.Custom {
         [SerializeField] private bool drawOriginalFullTrajectory;
         [SerializeField] private Color originalTrajectoryColor;
         
-        private string filepath;
-        private ArcadeKart MLAgent;
+        private KartAgent MLAgent;
         private KartAgent kartAgent;
         private StateRecorder MLASR;
         
@@ -49,8 +48,8 @@ namespace KartGame.Custom {
         private float[] evaluations;
         private int subtrajectoryIndex = 0;
 
-        public void Setup(string demoName, ArcadeKart MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color originalSubtrajectoryColor, Color agentSubtrajectoryColor, bool drawOriginalFullTrajectory, Color originalTrajectoryColor) {
-            this.demoName = demoName;
+        public void Setup(string demoFilepath, KartAgent MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color originalSubtrajectoryColor, Color agentSubtrajectoryColor, bool drawOriginalFullTrajectory, Color originalTrajectoryColor) {
+            this.demoFilepath = demoFilepath;
             this.MLAgentPrefab = MLAgentPrefab;
             this.MLAgentTrainedModel = MLAgentTrainedModel;
             this.track = track;
@@ -63,14 +62,12 @@ namespace KartGame.Custom {
             this.originalTrajectoryColor = originalTrajectoryColor;
         }
 
-        private void Awake() {
-            filepath = Application.persistentDataPath + "/demos/";
-            
-            if (!StatePlayer.CheckValidFile(Path.Join(filepath, demoName))) {
+        private void Awake() {           
+            if (!StatePlayer.CheckValidFile(demoFilepath)) {
                 enabled = false;
                 return;
             }
-            originalTrajectory = new Trajectory(StatePlayer.ReadFromFile(Path.Join(filepath, demoName)));
+            originalTrajectory = new Trajectory(StatePlayer.ReadFromFile(demoFilepath));
             
             subTrajectories = new Trajectory[splitAmount];
             AISubtrajectories = new Trajectory[splitAmount];
@@ -84,7 +81,7 @@ namespace KartGame.Custom {
             MLAgent = Instantiate(MLAgentPrefab, empty.transform);
 
             kartAgent = MLAgent.GetComponent<KartAgent>();
-            kartAgent.Mode = AgentMode.Inferencing;
+            kartAgent.Mode = AgentMode.Evaluating;
             kartAgent.Track = track;
 
             DecisionRequester MLADR = MLAgent.GetComponent<DecisionRequester>();

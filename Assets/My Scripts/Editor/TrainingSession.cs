@@ -71,7 +71,7 @@ namespace KartGame.Custom.Training {
                 if (settings[i].trainer == "") throw new ArgumentNullException("Trainer");
                 if (settings[i].runId == "") throw new ArgumentNullException("RunID");
                 if (condaStartScript == "") throw new ArgumentNullException("Conda activation script");
-                if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", settings[i].trainer))) throw new FileNotFoundException(settings[i].trainer);
+                if (!File.Exists(Path.Join($"{Application.dataPath}/ML-Agents/Training/trainers", settings[i].trainer))) throw new FileNotFoundException(settings[i].trainer);
                 if (!File.Exists(condaStartScript)) throw new FileNotFoundException(condaStartScript);
             }
             return true;

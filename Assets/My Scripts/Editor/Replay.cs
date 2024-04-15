@@ -29,19 +29,28 @@ public class Replay : EditorWindow
         }
         EditorGUILayout.EndHorizontal();
         if(GUILayout.Button("Load Demo")) {
-            if (SetupReplayScene()) {
+            if (SetupAndOpenReplayScene()) {
                 EditorApplication.EnterPlaymode();
             }
         }
     }
 
-    bool SetupReplayScene() {
+    private bool SetupAndOpenReplayScene() {
+        return SetupAndOpenReplayScene(filepath);
+    }
+
+    public static string GetTrackNameByFilename(string filepath) {
+        // path/to/file/Track0-0.state -> path/to/file/Track0-0 -> Track0-0 -> Track0
+        return filepath.Replace(".state", "").Split("/")[^1].Split("-")[0];
+    }
+
+    public static bool SetupAndOpenReplayScene(string filepath, Track track = null, bool replay = true) {
         string trackFolder = ReplaySettings.GetSerializedSettings().FindProperty("m_TrackFolder").stringValue;
         ArcadeKart kart;
         try {
-            string trackName = filepath.Replace(".state", "").Split("/")[^1].Split("-")[0];
+            string trackName = GetTrackNameByFilename(filepath);
             if (EditorSceneManager.OpenScene($"{trackFolder}/{trackName}.unity") == null) {
-                throw new FileNotFoundException();
+                throw new FileNotFoundException($"{trackName}.unity");
             }
             
             FindObjectOfType<GameFlowManagerCustom>().gameObject.SetActive(false);
@@ -63,10 +72,13 @@ public class Replay : EditorWindow
                 return false;
             }
         }
-        kart.gameObject.SetActive(false);
-            StatePlayer statePlayer = kart.AddComponent<StatePlayer>();
-            statePlayer.SetFullpath(filepath);
-        kart.gameObject.SetActive(true);
+
+        if (replay) {
+            kart.gameObject.SetActive(false);
+                StatePlayer statePlayer = kart.AddComponent<StatePlayer>();
+                statePlayer.SetFullpath(filepath);
+            kart.gameObject.SetActive(true);
+        }
         return true;
     }
 }

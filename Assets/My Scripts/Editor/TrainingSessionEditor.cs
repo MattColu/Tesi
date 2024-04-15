@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Diagnostics;
-using System.IO;
 using KartGame.Custom;
 using KartGame.Custom.AI;
 using KartGame.Custom.Training;
@@ -71,12 +70,12 @@ public class TrainingSessionEditor : EditorWindow
         EditorGUILayout.BeginHorizontal();
         
         if (GUILayout.Button("Save")) {
-            string savefile = EditorUtility.SaveFilePanel("Save Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "config", "json");
+            string savefile = EditorUtility.SaveFilePanel("Save Training Session Configuration", $"{Application.dataPath}/ML-Agents/Training/configs", "config", "json");
             if (savefile != "") session.ToFile(savefile);
         }
 
         if (GUILayout.Button("Load")) {
-            string savefile = EditorUtility.OpenFilePanel("Load Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "json");
+            string savefile = EditorUtility.OpenFilePanel("Load Training Session Configuration", $"{Application.dataPath}/ML-Agents/Training/configs", "json");
             if (savefile != "") session = TrainingSession.FromFile(savefile);
             serializedSession.ApplyModifiedProperties();
         }
@@ -171,7 +170,7 @@ public class TrainingSessionEditor : EditorWindow
     
     public static void LaunchTrainer(string condaStartScript, string trainerName, string runId) {
         using (Process trainer = new()) {
-            trainer.StartInfo.FileName = $"{Directory.GetParent(Application.dataPath)}/Training/start_training.bat";
+            trainer.StartInfo.FileName = $"{Application.dataPath}/ML-Agents/Training/start_training.bat";
             trainer.StartInfo.UseShellExecute = true;
             trainer.StartInfo.Arguments = $"{condaStartScript} trainers/{trainerName} {runId}";
             trainer.Start();
@@ -180,7 +179,7 @@ public class TrainingSessionEditor : EditorWindow
 
     public static void LaunchTensorboard(string condaStartScript) {
         using (Process tb = new()) {
-            tb.StartInfo.FileName = $"{Directory.GetParent(Application.dataPath)}/Training/start_tensorboard.bat";
+            tb.StartInfo.FileName = $"{Application.dataPath}/ML-Agents/Training/start_tensorboard.bat";
             tb.StartInfo.UseShellExecute = true;
             tb.StartInfo.Arguments = $"{condaStartScript}";
             tb.Start();

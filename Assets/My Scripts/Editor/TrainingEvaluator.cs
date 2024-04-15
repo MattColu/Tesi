@@ -1,17 +1,18 @@
 using System;
+using System.IO;
+using Cinemachine;
 using KartGame.Custom;
+using KartGame.Custom.AI;
+using KartGame.Custom.Training;
 using KartGame.KartSystems;
 using Unity.Sentis;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public class TrainingEvaluator: EditorWindow
 {
     private ModelEvaluator evaluatorPrefab;
-
-    private string demoName;
-    private ArcadeKart agentPrefab;
+    private KartAgent agentPrefab;
     private ModelAsset model;
     private Track track;
 
@@ -29,6 +30,8 @@ public class TrainingEvaluator: EditorWindow
 
     private ModelEvaluator evaluatorInstance;
     private Track trackInstance;
+    private string modelName;
+    private string demoFilepath;
     
     [MenuItem ("MLAgents/Evaluate Model", priority = 11)]
     public static void ShowWindow() {
@@ -36,11 +39,13 @@ public class TrainingEvaluator: EditorWindow
     }
     
     void OnGUI () {
-        evaluatorPrefab = (ModelEvaluator) EditorGUILayout.ObjectField("Evaluator Prefab", evaluatorPrefab, typeof(ModelEvaluator), allowSceneObjects: false);
-        demoName = EditorGUILayout.TextField("Demo Name", demoName);
-        agentPrefab = (ArcadeKart) EditorGUILayout.ObjectField("Agent Prefab", agentPrefab, typeof(ArcadeKart), allowSceneObjects: false);
-        model = (ModelAsset) EditorGUILayout.ObjectField("Trained Model", model, typeof(ModelAsset), allowSceneObjects: false);
-        track = (Track) EditorGUILayout.ObjectField("Track", track, typeof(Track), allowSceneObjects: false);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Demo File", demoFilepath);
+        if (GUILayout.Button("Browse")) {
+            demoFilepath = EditorUtility.OpenFilePanel("Choose a demo file", "", "state");
+        }
+        EditorGUILayout.EndHorizontal();
+        modelName = EditorGUILayout.TextField("Model Run Id", modelName);
         evaluationTimeScale = EditorGUILayout.FloatField("Evaluation Timescale", evaluationTimeScale);
         splitAmount = EditorGUILayout.IntField("Number of Splits", splitAmount);
         splitDuration = EditorGUILayout.IntField("Duration of a Split", splitDuration);
@@ -62,26 +67,43 @@ public class TrainingEvaluator: EditorWindow
     }
 
     void CheckInput() {
-        if (track == null) throw new ArgumentNullException("Track");
-        if (model == null) throw new ArgumentNullException("Model");
-
+        if (!File.Exists($"{Application.dataPath}/ML-Agents/Training/results/{modelName}/Kart.onnx")) throw new ArgumentNullException("Model");
+        evaluatorPrefab = AssetDatabase.LoadAssetAtPath<ModelEvaluator>("Assets/My Prefabs/Model Evaluator.prefab");
+        agentPrefab = (KartAgent)DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
     }
 
     void SetupEvaluationScene() {
-        EditorSceneManager.OpenScene("Assets/Scenes/Evaluation.unity");   //Opens scene if not currently open, reloads scene otherwise
-        InstantiateTrack();
-        InstantiateEvaluator();
+        if (Replay.SetupAndOpenReplayScene(demoFilepath, replay: false)) {
+            DestroyKarts();
+            trackInstance = FindObjectOfType<Track>();
+            DestroyImmediate(FindObjectOfType<CinemachineVirtualCamera>().gameObject);
+            DestroyImmediate(FindObjectOfType<CinemachineBrain>());
+            model = AssetDatabase.LoadAssetAtPath<ModelAsset>($"Assets/ML-Agents/Training/results/{modelName}/Kart.onnx");
+            InstantiateEvaluator();
+        }
     }
 
-    void InstantiateTrack() {
-        trackInstance = Instantiate(track);
+    void DestroyKarts() {
+        foreach (var kart in FindObjectsOfType<ArcadeKart>()) {
+            DestroyImmediate(kart.gameObject);
+        }
     }
 
     void InstantiateEvaluator() {
         var empty = new GameObject();
         empty.SetActive(false);
         evaluatorInstance = Instantiate(evaluatorPrefab, empty.transform);
-        evaluatorInstance.Setup(demoName, agentPrefab, model, trackInstance, evaluationTimeScale, splitAmount, splitDuration, originalSubtrajectoryColor, agentSubtrajectoryColor, drawOriginalFullTrajectory, originalTrajectoryColor);
+        evaluatorInstance.Setup(demoFilepath,
+                                agentPrefab,
+                                model,
+                                trackInstance,
+                                evaluationTimeScale,
+                                splitAmount,
+                                splitDuration,
+                                originalSubtrajectoryColor,
+                                agentSubtrajectoryColor,
+                                drawOriginalFullTrajectory,
+                                originalTrajectoryColor);
         empty.SetActive(true);
         evaluatorInstance.transform.parent = empty.transform.parent;
         DestroyImmediate(empty);
