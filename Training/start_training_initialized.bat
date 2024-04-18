@@ -1,0 +1,1 @@
+call %1 && conda activate mlagents && cd Training && mlagents-learn %2 --run-id %3 --time-scale 1 --initialize-from %4

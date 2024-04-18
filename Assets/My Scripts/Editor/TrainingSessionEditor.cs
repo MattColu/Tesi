@@ -1,11 +1,9 @@
 using System.Collections;
 using System.Diagnostics;
-using KartGame.Custom;
-using KartGame.Custom.AI;
+using System.IO;
 using KartGame.Custom.Training;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public class TrainingSessionEditor : EditorWindow
@@ -14,13 +12,15 @@ public class TrainingSessionEditor : EditorWindow
         Stopped,
         Started,
         Training,
+        Evaluating,
         Waiting
     }
     public TrainingSession session;
     private SerializedObject serializedSession;
-    private Track[] instantiatedTracks;
     private SessionFSM state;
     private int sessionIndex;
+
+    Vector2 scrollPosition = Vector2.zero;
 
     [MenuItem ("MLAgents/Start Tensorboard", priority = 50)]
     public static void StartTensorboard() {
@@ -47,7 +47,7 @@ public class TrainingSessionEditor : EditorWindow
     }
 
     public void OnGUI() {
-        EditorGUILayout.BeginVertical();
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
         GUILayout.Label("Training Session Settings", EditorStyles.boldLabel);
         serializedSession.Update();
         SerializedProperty settingsProperty = serializedSession.FindProperty("session");
@@ -70,32 +70,42 @@ public class TrainingSessionEditor : EditorWindow
         EditorGUILayout.BeginHorizontal();
         
         if (GUILayout.Button("Save")) {
-            string savefile = EditorUtility.SaveFilePanel("Save Training Session Configuration", $"{Application.dataPath}/ML-Agents/Training/configs", "config", "json");
+            string savefile = EditorUtility.SaveFilePanel("Save Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "config", "json");
             if (savefile != "") session.ToFile(savefile);
         }
 
         if (GUILayout.Button("Load")) {
-            string savefile = EditorUtility.OpenFilePanel("Load Training Session Configuration", $"{Application.dataPath}/ML-Agents/Training/configs", "json");
+            string savefile = EditorUtility.OpenFilePanel("Load Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "json");
             if (savefile != "") session = TrainingSession.FromFile(savefile);
             serializedSession.ApplyModifiedProperties();
         }
         if (GUILayout.Button("Clear")) {
-            session.settings = null;
+            session.steps = null;
         }
         EditorGUILayout.EndHorizontal();
+        
+        EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Start Training")) {
             if (session.Check()) {
                 state = SessionFSM.Started;
             }
         }
-        EditorGUILayout.EndVertical();
+        if (GUILayout.Button("STOP")) {
+            if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
+            state = SessionFSM.Stopped;
+            sessionIndex = 0;
+        }
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.EndScrollView();
     }
 
     private void Update() {
         switch (state) {
             case SessionFSM.Training:
-            case SessionFSM.Stopped:
+            case SessionFSM.Evaluating:
             case SessionFSM.Waiting:
+            case SessionFSM.Stopped:
                 return;
             case SessionFSM.Started:
                 if (sessionIndex >= session.Length) {
@@ -109,20 +119,42 @@ public class TrainingSessionEditor : EditorWindow
     }
 
     private IEnumerator Execute() {
-        SetupTrainingScene(session[sessionIndex]);
-        LaunchTrainer(session.GetCondaScript(), session[sessionIndex].trainer, session[sessionIndex].runId);
-        yield return EditorCoroutineUtility.StartCoroutineOwnerless(DelayedEnterPlaymode(10f));
+        switch (session[sessionIndex].stepType) {
+            case SessionStepType.Training:
+                TrainingSession.SetupTrainingScene(session[sessionIndex].trainingSettings);
+                LaunchTrainer(session.GetCondaScript(),
+                                session[sessionIndex].trainingSettings.trainer,
+                                session[sessionIndex].trainingSettings.runId,
+                                session[sessionIndex].trainingSettings.initializeFrom);
+                yield return EditorCoroutineUtility.StartCoroutineOwnerless(DelayedEnterPlaymode(10f));
+            break;
+            case SessionStepType.Evaluation:
+                TrainingSession.SetupEvaluationScene(session[sessionIndex].evaluationSettings);
+                EditorApplication.EnterPlaymode();
+            break;
+        }
     }
 
     private void ManageStateChange(PlayModeStateChange stateChange) {
         switch (stateChange) {
             case PlayModeStateChange.ExitingEditMode:
                 if (state == SessionFSM.Waiting) {
-                    state = SessionFSM.Training;
+                    switch (session[sessionIndex].stepType) {
+                        case SessionStepType.Training:
+                            state = SessionFSM.Training;
+                        break;
+                        case SessionStepType.Evaluation:
+                            state = SessionFSM.Evaluating;
+                        break;
+                    }
                 }
             break;
             case PlayModeStateChange.ExitingPlayMode:
                 if (state == SessionFSM.Training) {
+                    MoveTrainedModel(session[sessionIndex].trainingSettings.runId);
+                    sessionIndex++;
+                    state = SessionFSM.Started;
+                } else if (state == SessionFSM.Evaluating) {
                     sessionIndex++;
                     state = SessionFSM.Started;
                 }
@@ -130,56 +162,41 @@ public class TrainingSessionEditor : EditorWindow
         }
     }
 
-    private void SetupTrainingScene(TrainingSettings settings) {
-        EditorSceneManager.OpenScene("Assets/Scenes/Training.unity");   //Opens scene if not currently open, reloads scene otherwise
-        InstantiateTracks(settings);
-        InstantiateKarts(settings);
-    }
-
-    private void InstantiateTracks(TrainingSettings settings) {
-        instantiatedTracks = new Track[settings.trackInstances];
-        Vector3 trackBounds = settings.track.GetBoundingBox().size;
-        int side = Mathf.CeilToInt(Mathf.Sqrt(settings.trackInstances));
-        for (int row = 0, index = 0; row < side && index < settings.trackInstances; row++) {
-            for (int col = 0; col < side && index < settings.trackInstances; col++, index++) {
-                instantiatedTracks[index] = Instantiate(settings.track, new Vector3(col * trackBounds.x, 0, row * trackBounds.z), Quaternion.identity);
-                instantiatedTracks[index].name = $"{settings.track.name} {index}";
-                instantiatedTracks[index].SetSpawnpoint(); 
-            }
+    public static void MoveTrainedModel(string runId) {
+        string srcPath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{runId}/Kart.onnx";
+        string dstPath = $"{Application.dataPath}/ML-Agents/Trained Models/{runId}.onnx";
+        if (File.Exists(dstPath)) {
+            UnityEngine.Debug.LogWarning($"{dstPath} already exists, overwriting...");
+            File.Delete(dstPath);
         }
+        File.Move(srcPath, dstPath);
+        AssetDatabase.Refresh();
+        UnityEngine.Debug.Log($"Moved model from {srcPath} to {dstPath}");
     }
 
-    private void InstantiateKarts(TrainingSettings settings) {
-        for (int t = 0; t < instantiatedTracks.Length; t++) {
-            Track track = instantiatedTracks[t];
-            Transform spawnpoint = track.GetSpawnpoint();
-            
-            for (int i = 0; i < settings.agentInstances; i++) {
-                KartAgent instance = Instantiate(settings.agent, spawnpoint.position, spawnpoint.rotation);
-                instance.name = $"{settings.agent.name} {t}-{i}";
-                instance.GetComponent<KartAgent>().Track = track;
-            }
-        }
-    }
-
-    private IEnumerator DelayedEnterPlaymode(float delay) {
+    public static IEnumerator DelayedEnterPlaymode(float delay) {
         UnityEngine.Debug.Log($"Entering play mode in {delay} seconds...");
         yield return new EditorWaitForSeconds(delay);
         EditorApplication.EnterPlaymode();
     }
     
-    public static void LaunchTrainer(string condaStartScript, string trainerName, string runId) {
+    public static void LaunchTrainer(string condaStartScript, string trainerName, string runId, string initializeFrom = "") {
         using (Process trainer = new()) {
-            trainer.StartInfo.FileName = $"{Application.dataPath}/ML-Agents/Training/start_training.bat";
             trainer.StartInfo.UseShellExecute = true;
-            trainer.StartInfo.Arguments = $"{condaStartScript} trainers/{trainerName} {runId}";
+            if (initializeFrom == "") {
+                trainer.StartInfo.FileName = $"{Directory.GetParent(Application.dataPath)}/Training/start_training.bat";
+                trainer.StartInfo.Arguments = $"{condaStartScript} trainers/{trainerName} {runId}";
+            } else {
+                trainer.StartInfo.FileName = $"{Directory.GetParent(Application.dataPath)}/Training/start_training_initialized.bat";
+                trainer.StartInfo.Arguments = $"{condaStartScript} trainers/{trainerName} {runId} {initializeFrom}";
+            }
             trainer.Start();
         }
     }
 
     public static void LaunchTensorboard(string condaStartScript) {
         using (Process tb = new()) {
-            tb.StartInfo.FileName = $"{Application.dataPath}/ML-Agents/Training/start_tensorboard.bat";
+            tb.StartInfo.FileName = $"{Directory.GetParent(Application.dataPath)}/Training/start_tensorboard.bat";
             tb.StartInfo.UseShellExecute = true;
             tb.StartInfo.Arguments = $"{condaStartScript}";
             tb.Start();

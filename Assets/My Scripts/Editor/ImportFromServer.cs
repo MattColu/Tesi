@@ -27,12 +27,12 @@ public class ImportFromServer : EditorWindow
 
     public void OnGUI() {
         serverPath = EditorGUILayout.TextField("Server Path to User", serverPath);
-        downloadType = (DownloadType)EditorGUILayout.EnumFlagsField("Download Type", downloadType);
+        downloadType = (DownloadType)EditorGUILayout.EnumPopup("Download Type", downloadType);
         if (downloadType == DownloadType.NPerTrack) {
             lapsToDownload = EditorGUILayout.IntField("Laps to Download", lapsToDownload);
         }
         if (GUILayout.Button("Import")) {
-            localPath = EditorUtility.SaveFolderPanel("Import Location", "Training", "demos");
+            localPath = EditorUtility.SaveFolderPanel("Import Location", "Training", ".demos");
             if (Check()) {
                 Import();
             }

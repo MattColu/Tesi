@@ -67,7 +67,7 @@ public class TrainingEvaluator: EditorWindow
     }
 
     void CheckInput() {
-        if (!File.Exists($"{Application.dataPath}/ML-Agents/Training/results/{modelName}/Kart.onnx")) throw new ArgumentNullException("Model");
+        if (!File.Exists($"{Directory.GetParent(Application.dataPath)}/Training/results/{modelName}/Kart.onnx")) throw new ArgumentNullException("Model");
         evaluatorPrefab = AssetDatabase.LoadAssetAtPath<ModelEvaluator>("Assets/My Prefabs/Model Evaluator.prefab");
         agentPrefab = (KartAgent)DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
     }
@@ -78,7 +78,8 @@ public class TrainingEvaluator: EditorWindow
             trackInstance = FindObjectOfType<Track>();
             DestroyImmediate(FindObjectOfType<CinemachineVirtualCamera>().gameObject);
             DestroyImmediate(FindObjectOfType<CinemachineBrain>());
-            model = AssetDatabase.LoadAssetAtPath<ModelAsset>($"Assets/ML-Agents/Training/results/{modelName}/Kart.onnx");
+            model = AssetDatabase.LoadAssetAtPath<ModelAsset>($"Assets/ML-Agents/Trained Models/{modelName}.onnx");
+            if (model == null) throw new NullReferenceException("Model is null");
             InstantiateEvaluator();
         }
     }

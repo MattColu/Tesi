@@ -5,9 +5,7 @@ using Unity.MLAgents.Policies;
 using Unity.Sentis;
 using UnityEngine;
 using KartGame.Custom.Demo;
-using KartGame.KartSystems;
 using KartGame.Custom.AI;
-using System.IO;
 using Unity.VisualScripting;
 using Unity.MLAgents;
 using UnityEditor;
@@ -40,6 +38,7 @@ namespace KartGame.Custom {
         private float oldTimeScale;
         private int splitTimer;
         private bool isEvaluating;
+        private bool standalone;
 
         private Trajectory originalTrajectory;
 
@@ -48,7 +47,7 @@ namespace KartGame.Custom {
         private float[] evaluations;
         private int subtrajectoryIndex = 0;
 
-        public void Setup(string demoFilepath, KartAgent MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color originalSubtrajectoryColor, Color agentSubtrajectoryColor, bool drawOriginalFullTrajectory, Color originalTrajectoryColor) {
+        public void Setup(string demoFilepath, KartAgent MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = true) {
             this.demoFilepath = demoFilepath;
             this.MLAgentPrefab = MLAgentPrefab;
             this.MLAgentTrainedModel = MLAgentTrainedModel;
@@ -56,10 +55,11 @@ namespace KartGame.Custom {
             this.evaluationTimeScale = evaluationTimeScale;
             this.splitAmount = splitAmount;
             this.splitDuration = splitDuration;
-            this.originalSubtrajectoryColor = originalSubtrajectoryColor; 
-            this.agentSubtrajectoryColor = agentSubtrajectoryColor;
+            this.originalSubtrajectoryColor = originalSubtrajectoryColor ?? Color.red; 
+            this.agentSubtrajectoryColor = agentSubtrajectoryColor ?? Color.blue;
             this.drawOriginalFullTrajectory = drawOriginalFullTrajectory;
-            this.originalTrajectoryColor = originalTrajectoryColor;
+            this.originalTrajectoryColor = originalTrajectoryColor ?? Color.red;
+            this.standalone = true;
         }
 
         private void Awake() {           
@@ -162,7 +162,11 @@ namespace KartGame.Custom {
                 Destroy(MLAgent.gameObject);
                 Time.timeScale = oldTimeScale;
                 Evaluate();
-                enabled = false;
+                if (standalone) {
+                    enabled = false;
+                } else {
+                    EditorApplication.ExitPlaymode();
+                }
             }
         }
 
