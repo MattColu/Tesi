@@ -9,12 +9,11 @@ using Unity.Sentis;
 using UnityEditor;
 using UnityEngine;
 
-public class TrainingEvaluator: EditorWindow
+public class ModelEvaluatorEditor: EditorWindow
 {
     private ModelEvaluator evaluatorPrefab;
     private KartAgent agentPrefab;
     private ModelAsset model;
-    private Track track;
 
     private float evaluationTimeScale;
 
@@ -28,14 +27,12 @@ public class TrainingEvaluator: EditorWindow
     private bool drawOriginalFullTrajectory;
     private Color originalTrajectoryColor;
 
-    private ModelEvaluator evaluatorInstance;
-    private Track trackInstance;
     private string modelName;
     private string demoFilepath;
     
     [MenuItem ("MLAgents/Evaluate Model", priority = 11)]
     public static void ShowWindow() {
-        GetWindow(typeof(TrainingEvaluator));
+        GetWindow(typeof(ModelEvaluatorEditor));
     }
     
     void OnGUI () {
@@ -61,52 +58,25 @@ public class TrainingEvaluator: EditorWindow
 
         if (GUILayout.Button("Evaluate")) {
             CheckInput();
-            SetupEvaluationScene();
+            TrainingSession.SetupEvaluationScene(
+                demoFilepath,
+                model,
+                evaluationTimeScale,
+                splitAmount,
+                splitDuration,
+                originalSubtrajectoryColor,
+                agentSubtrajectoryColor,
+                drawOriginalFullTrajectory,
+                originalTrajectoryColor,
+                true);
             EditorApplication.EnterPlaymode();
         }
     }
 
     void CheckInput() {
-        if (!File.Exists($"{Directory.GetParent(Application.dataPath)}/Training/results/{modelName}/Kart.onnx")) throw new ArgumentNullException("Model");
-        evaluatorPrefab = AssetDatabase.LoadAssetAtPath<ModelEvaluator>("Assets/My Prefabs/Model Evaluator.prefab");
-        agentPrefab = (KartAgent)DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
-    }
-
-    void SetupEvaluationScene() {
-        if (Replay.SetupAndOpenReplayScene(demoFilepath, replay: false)) {
-            DestroyKarts();
-            trackInstance = FindObjectOfType<Track>();
-            DestroyImmediate(FindObjectOfType<CinemachineVirtualCamera>().gameObject);
-            DestroyImmediate(FindObjectOfType<CinemachineBrain>());
-            model = AssetDatabase.LoadAssetAtPath<ModelAsset>($"Assets/ML-Agents/Trained Models/{modelName}.onnx");
-            if (model == null) throw new NullReferenceException("Model is null");
-            InstantiateEvaluator();
-        }
-    }
-
-    void DestroyKarts() {
-        foreach (var kart in FindObjectsOfType<ArcadeKart>()) {
-            DestroyImmediate(kart.gameObject);
-        }
-    }
-
-    void InstantiateEvaluator() {
-        var empty = new GameObject();
-        empty.SetActive(false);
-        evaluatorInstance = Instantiate(evaluatorPrefab, empty.transform);
-        evaluatorInstance.Setup(demoFilepath,
-                                agentPrefab,
-                                model,
-                                trackInstance,
-                                evaluationTimeScale,
-                                splitAmount,
-                                splitDuration,
-                                originalSubtrajectoryColor,
-                                agentSubtrajectoryColor,
-                                drawOriginalFullTrajectory,
-                                originalTrajectoryColor);
-        empty.SetActive(true);
-        evaluatorInstance.transform.parent = empty.transform.parent;
-        DestroyImmediate(empty);
+        if (!File.Exists($"{Application.dataPath}/ML-Agents/Trained Models/{modelName}.onnx")) throw new ArgumentNullException("Model");
+        evaluatorPrefab = (ModelEvaluator) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultEvaluator").objectReferenceValue;
+        agentPrefab = (KartAgent) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
+        model = AssetDatabase.LoadAssetAtPath<ModelAsset>($"Assets/ML-Agents/Trained Models/{modelName}.onnx");
     }
 }

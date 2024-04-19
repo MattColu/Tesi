@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
@@ -165,11 +166,8 @@ public class TrainingSessionEditor : EditorWindow
     public static void MoveTrainedModel(string runId) {
         string srcPath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{runId}/Kart.onnx";
         string dstPath = $"{Application.dataPath}/ML-Agents/Trained Models/{runId}.onnx";
-        if (File.Exists(dstPath)) {
-            UnityEngine.Debug.LogWarning($"{dstPath} already exists, overwriting...");
-            File.Delete(dstPath);
-        }
-        File.Move(srcPath, dstPath);
+
+        File.Copy(srcPath, dstPath, true);
         AssetDatabase.Refresh();
         UnityEngine.Debug.Log($"Moved model from {srcPath} to {dstPath}");
     }
@@ -211,3 +209,4 @@ public class TrainingSessionEditor : EditorWindow
         }
     }
 }
+#endif

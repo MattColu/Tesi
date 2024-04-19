@@ -47,7 +47,7 @@ namespace KartGame.Custom {
         private float[] evaluations;
         private int subtrajectoryIndex = 0;
 
-        public void Setup(string demoFilepath, KartAgent MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = true) {
+        public void Setup(string demoFilepath, KartAgent MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
             this.demoFilepath = demoFilepath;
             this.MLAgentPrefab = MLAgentPrefab;
             this.MLAgentTrainedModel = MLAgentTrainedModel;
@@ -59,7 +59,7 @@ namespace KartGame.Custom {
             this.agentSubtrajectoryColor = agentSubtrajectoryColor ?? Color.blue;
             this.drawOriginalFullTrajectory = drawOriginalFullTrajectory;
             this.originalTrajectoryColor = originalTrajectoryColor ?? Color.red;
-            this.standalone = true;
+            this.standalone = standalone;
         }
 
         private void Awake() {           
