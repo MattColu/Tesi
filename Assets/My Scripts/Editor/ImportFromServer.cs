@@ -19,6 +19,7 @@ public class ImportFromServer : EditorWindow
     private const int laps = 5;
     private DownloadType downloadType;
     private int lapsToDownload;
+    private int trackMask;
 
     [MenuItem ("MLAgents/Import Demos From Firebase", priority = 30)]
     public static void ShowWindow() {
@@ -30,9 +31,11 @@ public class ImportFromServer : EditorWindow
         downloadType = (DownloadType)EditorGUILayout.EnumPopup("Download Type", downloadType);
         if (downloadType == DownloadType.NPerTrack) {
             lapsToDownload = EditorGUILayout.IntField("Laps to Download", lapsToDownload);
+        } else if (downloadType == DownloadType.Cumulative) {
+            trackMask = EditorGUILayout.MaskField("Tracks to Download", trackMask, trackNameList);
         }
         if (GUILayout.Button("Import")) {
-            localPath = EditorUtility.SaveFolderPanel("Import Location", "Training", ".demos");
+            localPath = EditorUtility.SaveFolderPanel("Import Location", "Training", "demos");
             if (Check()) {
                 Import();
             }
@@ -43,7 +46,6 @@ public class ImportFromServer : EditorWindow
         int folderN = 0;
         int counter = 0;
         string serverPathFixed = serverPath[1..].Replace(":", "%3A").Replace("/", "%2F"); // recordings%2Fusername-HH%3Amm%3Ass
-        
         switch (downloadType) {
             case DownloadType.Cumulative:
                 for (int limit = 1; limit <= cumulativeTrackNameList.Length; limit++) {
@@ -72,9 +74,9 @@ public class ImportFromServer : EditorWindow
     }
 
     public bool Check() {
-        if (serverPath == "") throw new ArgumentNullException("serverPath");
-        if (localPath == "") throw new ArgumentNullException("localPath");
-        if (downloadType == DownloadType.NPerTrack && lapsToDownload == 0) throw new ArgumentNullException("lapsToDownload");
+        if (serverPath == "") throw new ArgumentNullException("Server Path");
+        if (localPath == "") throw new ArgumentNullException("Local Path");
+        if (downloadType == DownloadType.NPerTrack && lapsToDownload == 0) throw new ArgumentNullException("Laps to download");
         return true;
     }
 }

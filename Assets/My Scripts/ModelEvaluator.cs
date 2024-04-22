@@ -9,11 +9,26 @@ using KartGame.Custom.AI;
 using Unity.VisualScripting;
 using Unity.MLAgents;
 using UnityEditor;
+using System.IO;
 
 namespace KartGame.Custom {
 
     public class ModelEvaluator : MonoBehaviour
     {
+        private struct EvaluationResult {
+            public int splitAmount;
+            public int splitLength;
+            public float[] splits;
+            public float result;
+
+            public EvaluationResult(int splitAmount, int splitLength, float[] splits, float result) {
+                this.splitAmount = splitAmount;
+                this.splitLength = splitLength;
+                this.splits = splits;
+                this.result = result;
+            }
+        }
+
         [SerializeField] private string demoFilepath;
         [SerializeField] private KartAgent MLAgentPrefab;
         [SerializeField] private ModelAsset MLAgentTrainedModel;
@@ -24,7 +39,7 @@ namespace KartGame.Custom {
         [Tooltip("Number of sub-trajectories to evaluate")]
         [SerializeField] private int splitAmount;
         [Tooltip("Length (in timesteps) of each sub-trajectory")]
-        [SerializeField] private int splitDuration;
+        [SerializeField] private int splitLength;
 
         [SerializeField] private Color originalSubtrajectoryColor; 
         [SerializeField] private Color agentSubtrajectoryColor;
@@ -38,7 +53,7 @@ namespace KartGame.Custom {
         private float oldTimeScale;
         private int splitTimer;
         private bool isEvaluating;
-        private bool standalone;
+        [SerializeField, HideInInspector] private bool standalone;
 
         private Trajectory originalTrajectory;
 
@@ -54,7 +69,7 @@ namespace KartGame.Custom {
             this.track = track;
             this.evaluationTimeScale = evaluationTimeScale;
             this.splitAmount = splitAmount;
-            this.splitDuration = splitDuration;
+            this.splitLength = splitDuration;
             this.originalSubtrajectoryColor = originalSubtrajectoryColor ?? Color.red; 
             this.agentSubtrajectoryColor = agentSubtrajectoryColor ?? Color.blue;
             this.drawOriginalFullTrajectory = drawOriginalFullTrajectory;
@@ -122,9 +137,9 @@ namespace KartGame.Custom {
 
         private void GenerateSubtrajectories() {
             for (int s=0; s<splitAmount; s++) {
-                StateData[] t = new StateData[splitDuration];
+                StateData[] t = new StateData[splitLength];
                 int index = s * originalTrajectory.points.Length/splitAmount;   //Absolute index of first point of current split
-                for (int d=0; d<splitDuration; d++, index++) {
+                for (int d=0; d<splitLength; d++, index++) {
                     if (index < originalTrajectory.points.Length) {             //Take splitDuration points from original trajectory
                         t[d] = originalTrajectory.points[index];
                     } else {                                                    //If partial trajectory, discard: last subtrajectory -> return
@@ -165,6 +180,7 @@ namespace KartGame.Custom {
                 if (standalone) {
                     enabled = false;
                 } else {
+                    SaveToFile();
                     EditorApplication.ExitPlaymode();
                 }
             }
@@ -174,18 +190,25 @@ namespace KartGame.Custom {
             for (int s = 0; s < splitAmount; s++) {
                 evaluations[s] = Trajectory.Evaluate(subTrajectories[s], AISubtrajectories[s]);
             }
-            Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitDuration*Time.fixedDeltaTime*1000} ms each. Average Similarity: {evaluations.Average()}");
+            Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitLength*Time.fixedDeltaTime*1000} ms each. Average Similarity: {evaluations.Average()}");
         }
 
         private void FixedUpdate() {
             if (isEvaluating) {
                 splitTimer++;
-                if (splitTimer >= splitDuration) {
+                if (splitTimer >= splitLength) {
                     isEvaluating = false;
                     MLASR.enabled = false;
                     kartAgent.EndEpisode();
                 }
             }
+        }
+
+        private void SaveToFile() {
+            //Debug.Log($"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation.json");
+            string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation.json";
+            EvaluationResult result = new(splitAmount, splitLength, evaluations, evaluations.Average());
+            File.WriteAllText(filePath, JsonUtility.ToJson(result));
         }
     }
 }

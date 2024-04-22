@@ -49,54 +49,58 @@ public class TrainingSessionEditor : EditorWindow
 
     public void OnGUI() {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-        GUILayout.Label("Training Session Settings", EditorStyles.boldLabel);
-        serializedSession.Update();
-        SerializedProperty settingsProperty = serializedSession.FindProperty("session");
-
-        EditorGUILayout.PropertyField(settingsProperty, includeChildren: true);
-        serializedSession.ApplyModifiedProperties();
-        EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField($"Conda: {session.GetCondaScript()}");
-        if (GUILayout.Button("Edit")) {
-            EditorUtility.OpenPropertyEditor(AssetDatabase.LoadAssetAtPath<Object>("Assets/My Scripts/Editor/DefaultTrainingSettings.asset"));
-        }
-        if (GUILayout.Button("↻")) {
-            session.ResetCondaScript();
+            GUILayout.Label("Training Session Settings", EditorStyles.boldLabel);
             serializedSession.Update();
-        }
-        EditorGUILayout.EndHorizontal();
-        EditorGUILayout.LabelField($"State: {state}");
-        EditorGUILayout.LabelField($"Index: {sessionIndex}");
-        
-        EditorGUILayout.BeginHorizontal();
-        
-        if (GUILayout.Button("Save")) {
-            string savefile = EditorUtility.SaveFilePanel("Save Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "config", "json");
-            if (savefile != "") session.ToFile(savefile);
-        }
+            SerializedProperty settingsProperty = serializedSession.FindProperty("session");
 
-        if (GUILayout.Button("Load")) {
-            string savefile = EditorUtility.OpenFilePanel("Load Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "json");
-            if (savefile != "") session = TrainingSession.FromFile(savefile);
+            EditorGUILayout.PropertyField(settingsProperty, includeChildren: true);
             serializedSession.ApplyModifiedProperties();
-        }
-        if (GUILayout.Button("Clear")) {
-            session.steps = null;
-        }
-        EditorGUILayout.EndHorizontal();
-        
-        EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Start Training")) {
-            if (session.Check()) {
-                state = SessionFSM.Started;
-            }
-        }
-        if (GUILayout.Button("STOP")) {
-            if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
-            state = SessionFSM.Stopped;
-            sessionIndex = 0;
-        }
-        EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Save")) {
+                    string savefile = EditorUtility.SaveFilePanel("Save Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "config", "json");
+                    if (savefile != "") session.ToFile(savefile);
+                }
+
+                if (GUILayout.Button("Load")) {
+                    string savefile = EditorUtility.OpenFilePanel("Load Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "json");
+                    if (savefile != "") session = TrainingSession.FromFile(savefile);
+                    serializedSession.ApplyModifiedProperties();
+                }
+                if (GUILayout.Button("Clear")) {
+                    session.steps = null;
+                }
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.Separator();
+            
+            EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"Conda: {session.GetCondaScript()}");
+                if (GUILayout.Button("Edit")) {
+                    EditorUtility.OpenPropertyEditor(AssetDatabase.LoadAssetAtPath<Object>("Assets/My Scripts/Editor/DefaultTrainingSettings.asset"));
+                }
+                if (GUILayout.Button("↻")) {
+                    session.ResetCondaScript();
+                    serializedSession.Update();
+                }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.LabelField($"State: {state}");
+            EditorGUILayout.LabelField($"Index: {sessionIndex}");
+            
+            EditorGUILayout.Separator();
+            
+            EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Start Training")) {
+                    if (session.Check()) {
+                        state = SessionFSM.Started;
+                    }
+                }
+                if (GUILayout.Button("STOP")) {
+                    if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
+                    state = SessionFSM.Stopped;
+                    sessionIndex = 0;
+                }
+            EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.EndScrollView();
     }

@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cinemachine;
 using KartGame.Custom.AI;
 using KartGame.KartSystems;
@@ -13,11 +14,18 @@ using UnityEngine;
 
 namespace KartGame.Custom.Training {
     [Serializable]
+    public struct SessionStep {
+        public SessionStepType stepType;
+        public TrainingSettings trainingSettings;
+        public EvaluationSettings evaluationSettings;
+    }
+
+    [Serializable]
     public enum SessionStepType {
         Training,
         Evaluation
     }
-
+    
     [Serializable]
     public struct TrainingSettings {
         public Track track;
@@ -43,13 +51,6 @@ namespace KartGame.Custom.Training {
         public override readonly string ToString() {
             return $"Demo File: {demoFile}\nModel Run Id: {modelRunId}\nSplit Amount: {splitAmount}\nSplit Length: {splitLength}";
         }
-    }
-
-    [Serializable]
-    public struct SessionStep {
-        public SessionStepType stepType;
-        public TrainingSettings trainingSettings;
-        public EvaluationSettings evaluationSettings;
     }
 
     [Serializable]
@@ -105,8 +106,14 @@ namespace KartGame.Custom.Training {
                     if (steps[i].trainingSettings.trainer == "") throw new ArgumentNullException($"Step {i} Trainer");
                     if (steps[i].trainingSettings.runId == "") throw new ArgumentNullException($"Step {i} RunID");
                     
-                    //if (steps[i].trainingSettings.initializeFrom != "" && !Directory.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/results", steps[i].trainingSettings.initializeFrom))) throw new DirectoryNotFoundException($"Initialize from {steps[i].trainingSettings.initializeFrom}");
-                    
+                    if (steps[i].trainingSettings.initializeFrom != "") {
+                        if (!Directory.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/results", steps[i].trainingSettings.initializeFrom))) {
+                            string nameToMatch = steps[i].trainingSettings.initializeFrom;
+                            if (!steps[..i].Any(step => step.trainingSettings.runId == nameToMatch)) {
+                                throw new DirectoryNotFoundException($"Initialize from {steps[i].trainingSettings.initializeFrom}");
+                            }
+                        } 
+                    }
                     if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", steps[i].trainingSettings.trainer))) throw new FileNotFoundException(steps[i].trainingSettings.trainer);
                     if (!File.Exists(condaStartScript)) throw new FileNotFoundException(condaStartScript);
                 } else {
@@ -200,7 +207,9 @@ namespace KartGame.Custom.Training {
         }
 
         public static void SetupEvaluationScene(EvaluationSettings settings) {
-            ModelAsset model = AssetDatabase.LoadAssetAtPath<ModelAsset>($"Assets/ML-Agents/Trained Models/{settings.modelRunId}.onnx");
+            string modelPath = $"Assets/ML-Agents/Trained Models/{settings.modelRunId}.onnx";
+            ModelAsset model = AssetDatabase.LoadAssetAtPath<ModelAsset>(modelPath);
+            if (model == null) throw new FileNotFoundException(modelPath);
             float evaluationTimescale = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultTimescale").floatValue;
             SetupEvaluationScene(settings.demoFile,
                                 model,
@@ -210,6 +219,7 @@ namespace KartGame.Custom.Training {
         }
 
         public static void SetupEvaluationScene(string demoFilepath, ModelAsset model, float evaluationTimeScale, int splitAmount, int splitLength, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
+            if (model == null) throw new NullReferenceException("Model is null");
             if (Replay.SetupAndOpenReplayScene(demoFilepath, replay: false)) {
                 DestroyKarts();
                 Track trackInstance = GameObject.FindObjectOfType<Track>();
@@ -217,7 +227,6 @@ namespace KartGame.Custom.Training {
                 GameObject.DestroyImmediate(GameObject.FindObjectOfType<CinemachineBrain>());
                 KartAgent agentPrefab = (KartAgent) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
                 ModelEvaluator evaluatorPrefab = (ModelEvaluator) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultEvaluator").objectReferenceValue;
-                if (model == null) throw new NullReferenceException("Model is null");
                 if (evaluatorPrefab == null) throw new FileNotFoundException("Default Evaluator Prefab was not defined");
                 InstantiateEvaluator(evaluatorPrefab,
                                     agentPrefab,
