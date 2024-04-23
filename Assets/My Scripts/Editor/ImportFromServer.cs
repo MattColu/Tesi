@@ -53,7 +53,7 @@ public class ImportFromServer : EditorWindow
                         for (int lap = 0; lap < laps; lap++) {
                             string tServerPath = $"%2F{trackName}%2F{trackName}-{lap}.demo?alt=media";
                             string tLocalPath = $"/{folderN}/{trackName}-{lap}.demo";
-                            EditorCoroutineUtility.StartCoroutine(RESTManager.GetAndWrite(serverPathFixed + tServerPath, localPath + tLocalPath), this);
+                            EditorCoroutineUtility.StartCoroutine(RESTManager.GetAndWrite(serverPathFixed + tServerPath, localPath + tLocalPath, true), this);
                             counter++;
                         }
                     }
@@ -62,10 +62,18 @@ public class ImportFromServer : EditorWindow
             break;
             case DownloadType.NPerTrack:
                 foreach (var trackName in trackNameList) {
-                    for (int lap = 0; lap < lapsToDownload; lap++) {
-                        string tServerPath = $"%2F{trackName}%2F{trackName}-{lap}.demo?alt=media";
-                        string tLocalPath = $"/{folderN}/{trackName}-{lap}.demo";
-                        EditorCoroutineUtility.StartCoroutine(RESTManager.GetAndWrite(serverPathFixed + tServerPath, localPath + tLocalPath), this);
+                    string type = "demo";
+                    string subfolder = "demonstrations";
+                    bool binary = true;
+                    for (int lap = 0; lap < laps; lap++) {
+                        if (lap >= lapsToDownload) {
+                            type = "state";
+                            subfolder = "replays";
+                            binary = false;
+                        }
+                        string tServerPath = $"%2F{trackName}%2F{trackName}-{lap}.{type}?alt=media";
+                        string tLocalPath = $"/{subfolder}/{folderN}/{trackName}-{lap}.{type}";
+                        EditorCoroutineUtility.StartCoroutine(RESTManager.GetAndWrite(serverPathFixed + tServerPath, localPath + tLocalPath, binary), this);
                     }
                     folderN++;
                 }

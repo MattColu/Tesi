@@ -40,10 +40,10 @@ public class Replay : EditorWindow
     }
 
     public static string GetTrackNameByFilename(string filepath) {
-        return filepath                 // path/to/file/Track0-0.state
-                .Replace(".state", "")  // path/to/file/Track0-0
-                .Split("/")[^1]         // Track0-0
-                .Split("-")[0];         // Track0
+        return filepath                 // path\to/file\Track0-0.state
+                .Replace(".state", "")  // path\to/file\Track0-0
+                .Split('/', '\\')[^1]   // Track0-0
+                .Split('-')[0];         // Track0
     }
 
     public static bool SetupAndOpenReplayScene(string filepath, Track track = null, bool replay = true) {

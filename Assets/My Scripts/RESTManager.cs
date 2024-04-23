@@ -43,7 +43,7 @@ public class RESTManager : MonoBehaviour {
         }
     }
 
-    public static IEnumerator GetAndWrite(string serverPath, string localPath) {
+    public static IEnumerator GetAndWrite(string serverPath, string localPath, bool binary) {
         using (UnityWebRequest www = UnityWebRequest.Get($"{storageURL}/{serverPath}")) {
             yield return www.SendWebRequest();
             if (www.result != UnityWebRequest.Result.Success) {
@@ -55,7 +55,11 @@ public class RESTManager : MonoBehaviour {
                     Debug.Log($"Created folder {localFolder}");
                 }
                 using (FileStream fs = File.Create(localPath)) {
-                    fs.Write(Convert.FromBase64String(www.downloadHandler.text));
+                    if (binary) {
+                        fs.Write(Convert.FromBase64String(www.downloadHandler.text));
+                    } else {
+                        fs.Write(www.downloadHandler.data);
+                    }
                 }
             }
         }
