@@ -90,7 +90,7 @@ public class TrainingSessionEditor : EditorWindow
             EditorGUILayout.Separator();
             
             EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button("Start Training")) {
+                if (GUILayout.Button("Start")) {
                     if (session.Check()) {
                         state = SessionFSM.Started;
                     }

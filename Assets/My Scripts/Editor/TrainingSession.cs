@@ -45,6 +45,7 @@ namespace KartGame.Custom.Training {
     public struct EvaluationSettings {
         public string demoFile;
         public string modelRunId;
+        public int numberOfEvaluations;
         public int splitAmount;
         public int splitLength;
 
@@ -114,9 +115,12 @@ namespace KartGame.Custom.Training {
                             }
                         } 
                     }
-                    if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", steps[i].trainingSettings.trainer))) throw new FileNotFoundException(steps[i].trainingSettings.trainer);
-                    if (!File.Exists(condaStartScript)) throw new FileNotFoundException(condaStartScript);
+                    if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", steps[i].trainingSettings.trainer))) throw new FileNotFoundException($"Step {i} Trainer: {steps[i].trainingSettings.trainer}");
+                    if (!File.Exists(condaStartScript)) throw new FileNotFoundException($"Conda activation script: {condaStartScript}");
                 } else {
+                    if (steps[i].evaluationSettings.numberOfEvaluations == 0) {
+                        steps[i].evaluationSettings.numberOfEvaluations = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultNumberOfEvaluations").intValue;
+                    }
                     if (steps[i].evaluationSettings.splitAmount == 0) {
                         steps[i].evaluationSettings.splitAmount = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultSplitAmount").intValue;
                     }
@@ -125,6 +129,7 @@ namespace KartGame.Custom.Training {
                     }
                     if (steps[i].evaluationSettings.demoFile == "") throw new ArgumentNullException($"Step {i} Demo File");
                     if (steps[i].evaluationSettings.modelRunId == "") throw new ArgumentNullException($"Step {i} Model Run Id");
+                    if (steps[i].evaluationSettings.numberOfEvaluations == 0) throw new ArgumentNullException($"Step {i} Number of Evaluations");
                     if (steps[i].evaluationSettings.splitAmount == 0) throw new ArgumentNullException($"Step {i} Split Amount");
                     if (steps[i].evaluationSettings.splitLength == 0) throw new ArgumentNullException($"Step {i} Split Length");
                 }
@@ -213,26 +218,32 @@ namespace KartGame.Custom.Training {
             float evaluationTimescale = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultTimescale").floatValue;
             SetupEvaluationScene(settings.demoFile,
                                 model,
+                                settings.numberOfEvaluations,
                                 evaluationTimescale,
                                 settings.splitAmount,
                                 settings.splitLength);
         }
 
-        public static void SetupEvaluationScene(string demoFilepath, ModelAsset model, float evaluationTimeScale, int splitAmount, int splitLength, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
+        public static void SetupEvaluationScene(string demoFilepath, ModelAsset model, int numberOfEvaluations, float evaluationTimeScale, int splitAmount, int splitLength, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
             if (model == null) throw new NullReferenceException("Model is null");
             if (Replay.SetupAndOpenReplayScene(demoFilepath, replay: false)) {
                 DestroyKarts();
+                
                 Track trackInstance = GameObject.FindObjectOfType<Track>();
                 GameObject.DestroyImmediate(GameObject.FindObjectOfType<CinemachineVirtualCamera>().gameObject);
                 GameObject.DestroyImmediate(GameObject.FindObjectOfType<CinemachineBrain>());
+                
                 KartAgent agentPrefab = (KartAgent) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
                 ModelEvaluator evaluatorPrefab = (ModelEvaluator) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultEvaluator").objectReferenceValue;
+                
                 if (evaluatorPrefab == null) throw new FileNotFoundException("Default Evaluator Prefab was not defined");
+                
                 InstantiateEvaluator(evaluatorPrefab,
                                     agentPrefab,
                                     demoFilepath,
                                     model,
                                     trackInstance,
+                                    numberOfEvaluations,
                                     evaluationTimeScale,
                                     splitAmount,
                                     splitLength,
@@ -250,7 +261,7 @@ namespace KartGame.Custom.Training {
             }
         }
 
-        public static ModelEvaluator InstantiateEvaluator(ModelEvaluator evaluatorPrefab, KartAgent agentPrefab, string demoFilepath, ModelAsset model, Track trackInstance, float evaluationTimescale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
+        public static ModelEvaluator InstantiateEvaluator(ModelEvaluator evaluatorPrefab, KartAgent agentPrefab, string demoFilepath, ModelAsset model, Track trackInstance, int numberOfEvaluations, float evaluationTimescale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
             var empty = new GameObject();
             empty.SetActive(false);
             ModelEvaluator evaluatorInstance = GameObject.Instantiate(evaluatorPrefab, empty.transform);
@@ -258,6 +269,7 @@ namespace KartGame.Custom.Training {
                                     agentPrefab,
                                     model,
                                     trackInstance,
+                                    numberOfEvaluations,
                                     evaluationTimescale,
                                     splitAmount,
                                     splitDuration,

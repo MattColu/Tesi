@@ -15,6 +15,8 @@ public class ModelEvaluatorEditor: EditorWindow
     private KartAgent agentPrefab;
     private ModelAsset model;
 
+    private int numberOfEvaluations;
+
     private float evaluationTimeScale;
 
     [Tooltip("Number of sub-trajectories to evaluate")]
@@ -43,6 +45,8 @@ public class ModelEvaluatorEditor: EditorWindow
         }
         EditorGUILayout.EndHorizontal();
         modelName = EditorGUILayout.TextField("Model Run Id", modelName);
+
+        numberOfEvaluations = EditorGUILayout.IntField("Number of Evaluations", numberOfEvaluations);
         evaluationTimeScale = EditorGUILayout.FloatField("Evaluation Timescale", evaluationTimeScale);
         splitAmount = EditorGUILayout.IntField("Number of Splits", splitAmount);
         splitDuration = EditorGUILayout.IntField("Duration of a Split", splitDuration);
@@ -61,6 +65,7 @@ public class ModelEvaluatorEditor: EditorWindow
             TrainingSession.SetupEvaluationScene(
                 demoFilepath,
                 model,
+                numberOfEvaluations,
                 evaluationTimeScale,
                 splitAmount,
                 splitDuration,

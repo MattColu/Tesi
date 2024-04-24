@@ -34,6 +34,8 @@ namespace KartGame.Custom {
         [SerializeField] private ModelAsset MLAgentTrainedModel;
         [SerializeField] private Track track;
 
+        [SerializeField] private int numberOfEvaluations;
+
         [SerializeField] private float evaluationTimeScale;
 
         [Tooltip("Number of sub-trajectories to evaluate")]
@@ -53,6 +55,8 @@ namespace KartGame.Custom {
         private float oldTimeScale;
         private int splitTimer;
         private bool isEvaluating;
+        private int evaluationCounter;
+        private EvaluationResult evaluationResults;
         [SerializeField, HideInInspector] private bool standalone;
 
         private Trajectory originalTrajectory;
@@ -60,16 +64,17 @@ namespace KartGame.Custom {
         private Trajectory[] subTrajectories;
         private Trajectory[] AISubtrajectories;
         private float[] evaluations;
-        private int subtrajectoryIndex = 0;
+        private int subtrajectoryIndex;
 
-        public void Setup(string demoFilepath, KartAgent MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, float evaluationTimeScale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
+        public void Setup(string demoFilepath, KartAgent MLAgentPrefab, ModelAsset MLAgentTrainedModel, Track track, int numberOfEvaluations, float evaluationTimeScale, int splitAmount, int splitLength, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
             this.demoFilepath = demoFilepath;
             this.MLAgentPrefab = MLAgentPrefab;
             this.MLAgentTrainedModel = MLAgentTrainedModel;
             this.track = track;
+            this.numberOfEvaluations = numberOfEvaluations;
             this.evaluationTimeScale = evaluationTimeScale;
             this.splitAmount = splitAmount;
-            this.splitLength = splitDuration;
+            this.splitLength = splitLength;
             this.originalSubtrajectoryColor = originalSubtrajectoryColor ?? Color.red; 
             this.agentSubtrajectoryColor = agentSubtrajectoryColor ?? Color.blue;
             this.drawOriginalFullTrajectory = drawOriginalFullTrajectory;
@@ -82,14 +87,18 @@ namespace KartGame.Custom {
                 enabled = false;
                 return;
             }
-            originalTrajectory = new Trajectory(StatePlayer.ReadFromFile(demoFilepath));
+
+            evaluationCounter = 0;
             
-            subTrajectories = new Trajectory[splitAmount];
-            AISubtrajectories = new Trajectory[splitAmount];
-            evaluations = new float[splitAmount];
+            originalTrajectory = new Trajectory(StatePlayer.ReadFromFile(demoFilepath));
+            evaluations = new float[numberOfEvaluations * splitAmount];
         }
 
         private void Start() {
+            subtrajectoryIndex = 0;
+            subTrajectories = new Trajectory[splitAmount];
+            AISubtrajectories = new Trajectory[splitAmount];
+
             var empty = new GameObject();
             empty.transform.parent = transform.parent;
             empty.SetActive(false);
@@ -177,20 +186,26 @@ namespace KartGame.Custom {
                 Destroy(MLAgent.gameObject);
                 Time.timeScale = oldTimeScale;
                 Evaluate();
-                if (standalone) {
-                    enabled = false;
+                evaluationCounter++;
+                if (evaluationCounter < numberOfEvaluations) {
+                    Start();
                 } else {
-                    SaveToFile();
-                    EditorApplication.ExitPlaymode();
+                    if (standalone) {
+                        enabled = false;
+                    } else {
+                        SaveToFile();
+                        EditorApplication.ExitPlaymode();
+                    }
                 }
             }
         }
 
         private void Evaluate() {
-            for (int s = 0; s < splitAmount; s++) {
-                evaluations[s] = Trajectory.Evaluate(subTrajectories[s], AISubtrajectories[s]);
+            int startingIndex = evaluationCounter * splitAmount;
+            for (int i = 0; i < splitAmount; i++) {
+                evaluations[startingIndex + i] = Trajectory.Evaluate(subTrajectories[i], AISubtrajectories[i]);
             }
-            Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitLength*Time.fixedDeltaTime*1000} ms each. Average Similarity: {evaluations.Average()}");
+            //Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitLength*Time.fixedDeltaTime*1000} ms each. Average Similarity: {evaluations.Average()}");
         }
 
         private void FixedUpdate() {
