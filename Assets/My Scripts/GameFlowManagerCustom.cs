@@ -5,182 +5,184 @@ using KartGame.KartSystems;
 using UnityEngine.SceneManagement;
 using KartGame.Custom.AI;
 
-public class GameFlowManagerCustom : MonoBehaviour
-{
-    [Header("Parameters")]
-    [Tooltip("Duration of the fade-to-black at the end of the game")]
-    public float endSceneLoadDelay = 3f;
-    [Tooltip("The canvas group of the fade-to-black screen")]
-    public CanvasGroup endGameFadeCanvasGroup;
-
-    [Header("Win")]
-    [Tooltip("This string has to be the name of the scene you want to load when winning")]
-    public string winSceneName = "WinScene";
-    [Tooltip("Duration of delay before the fade-to-black, if winning")]
-    public float delayBeforeFadeToBlack = 4f;
-    [Tooltip("Duration of delay before the win message")]
-    public float delayBeforeWinMessage = 2f;
-    [Tooltip("Sound played on win")]
-    public AudioClip victorySound;
-
-    [Tooltip("Prefab for the win game message")]
-    public DisplayMessage winDisplayMessage;
-
-    public PlayableDirector raceCountdownTrigger;
-
-    public GameState gameState { get; private set; }
-
-    public bool autoFindKarts = true;
-    public ArcadeKart playerKart;
-    public ArcadeKart dummyKart;
-
-    ArcadeKart[] karts;
-    ObjectiveManager m_ObjectiveManager;
-    TimeManager m_TimeManager;
-    float m_TimeLoadEndGameScene;
-    string m_SceneToLoad;
-    float elapsedTimeBeforeEndScene = 0;
-
-    void Start()
+namespace KartGame.Custom {
+    public class GameFlowManagerCustom : MonoBehaviour
     {
-        if (autoFindKarts)
+        [Header("Parameters")]
+        [Tooltip("Duration of the fade-to-black at the end of the game")]
+        public float endSceneLoadDelay = 3f;
+        [Tooltip("The canvas group of the fade-to-black screen")]
+        public CanvasGroup endGameFadeCanvasGroup;
+
+        [Header("Win")]
+        [Tooltip("This string has to be the name of the scene you want to load when winning")]
+        public string winSceneName = "WinScene";
+        [Tooltip("Duration of delay before the fade-to-black, if winning")]
+        public float delayBeforeFadeToBlack = 4f;
+        [Tooltip("Duration of delay before the win message")]
+        public float delayBeforeWinMessage = 2f;
+        [Tooltip("Sound played on win")]
+        public AudioClip victorySound;
+
+        [Tooltip("Prefab for the win game message")]
+        public DisplayMessage winDisplayMessage;
+
+        public PlayableDirector raceCountdownTrigger;
+
+        public GameState gameState { get; private set; }
+
+        public bool autoFindKarts = true;
+        public ArcadeKart playerKart;
+        public ArcadeKart dummyKart;
+
+        ArcadeKart[] karts;
+        ObjectiveManager m_ObjectiveManager;
+        TimeManager m_TimeManager;
+        float m_TimeLoadEndGameScene;
+        string m_SceneToLoad;
+        float elapsedTimeBeforeEndScene = 0;
+
+        void Start()
         {
-            karts = FindObjectsOfType<ArcadeKart>();
-            if (karts.Length > 0)
+            if (autoFindKarts)
             {
-                if (!playerKart) playerKart = karts[0];
+                karts = FindObjectsOfType<ArcadeKart>();
+                if (karts.Length > 0)
+                {
+                    if (!playerKart) playerKart = karts[0];
+                }
+                DebugUtility.HandleErrorIfNullFindObject<ArcadeKart, GameFlowManager>(playerKart, this);
             }
-            DebugUtility.HandleErrorIfNullFindObject<ArcadeKart, GameFlowManager>(playerKart, this);
+
+            m_ObjectiveManager = FindObjectOfType<ObjectiveManager>();
+            DebugUtility.HandleErrorIfNullFindObject<ObjectiveManager, GameFlowManager>(m_ObjectiveManager, this);
+
+            m_TimeManager = FindObjectOfType<TimeManager>();
+            DebugUtility.HandleErrorIfNullFindObject<TimeManager, GameFlowManager>(m_TimeManager, this);
+
+            AudioUtility.SetMasterVolume(1);
+
+            winDisplayMessage.gameObject.SetActive(false);
+
+            m_TimeManager.StopRace();
+            foreach (ArcadeKart k in karts)
+            {
+                k.SetCanMove(false);
+            }
+
+            if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
+                agent.SetupRecorders();
+            }
+
+            //run race countdown animation
+            StartCoroutine(ShowObjectivesRoutine());
+
+            if (raceCountdownTrigger) {
+                ShowRaceCountdownAnimation();
+                StartCoroutine(CountdownThenStartRaceRoutine());
+            } else {
+                StartRace();
+            }
         }
 
-        m_ObjectiveManager = FindObjectOfType<ObjectiveManager>();
-		DebugUtility.HandleErrorIfNullFindObject<ObjectiveManager, GameFlowManager>(m_ObjectiveManager, this);
-
-        m_TimeManager = FindObjectOfType<TimeManager>();
-        DebugUtility.HandleErrorIfNullFindObject<TimeManager, GameFlowManager>(m_TimeManager, this);
-
-        AudioUtility.SetMasterVolume(1);
-
-        winDisplayMessage.gameObject.SetActive(false);
-
-        m_TimeManager.StopRace();
-        foreach (ArcadeKart k in karts)
-        {
-			k.SetCanMove(false);
-        }
-
-        if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
-            agent.SetupRecorders();
-        }
-
-        //run race countdown animation
-        StartCoroutine(ShowObjectivesRoutine());
-
-        if (raceCountdownTrigger) {
-            ShowRaceCountdownAnimation();
-            StartCoroutine(CountdownThenStartRaceRoutine());
-        } else {
+        IEnumerator CountdownThenStartRaceRoutine() {
+            yield return new WaitForSeconds(3f);
             StartRace();
         }
-    }
 
-    IEnumerator CountdownThenStartRaceRoutine() {
-        yield return new WaitForSeconds(3f);
-        StartRace();
-    }
-
-    void StartRace() {
-        foreach (ArcadeKart k in karts)
-        {
-			k.SetCanMove(true);
-        }
-        if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
-            agent.StartRecorders();
-        }
-        m_TimeManager.StartRace();
-    }
-
-    void ShowRaceCountdownAnimation() {
-        raceCountdownTrigger.Play();
-    }
-
-    IEnumerator ShowObjectivesRoutine() {
-        while (m_ObjectiveManager.Objectives.Count == 0)
-            yield return null;
-        yield return new WaitForSecondsRealtime(0.2f);
-        for (int i = 0; i < m_ObjectiveManager.Objectives.Count; i++)
-        {
-           if (m_ObjectiveManager.Objectives[i].displayMessage)m_ObjectiveManager.Objectives[i].displayMessage.Display();
-           yield return new WaitForSecondsRealtime(1f);
-        }
-    }
-
-    void Update()
-    {
-        if (gameState != GameState.Play)
-        {
-            elapsedTimeBeforeEndScene += Time.deltaTime;
-            if(elapsedTimeBeforeEndScene >= endSceneLoadDelay)
+        void StartRace() {
+            foreach (ArcadeKart k in karts)
             {
+                k.SetCanMove(true);
+            }
+            if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
+                agent.StartRecorders();
+            }
+            m_TimeManager.StartRace();
+        }
 
-                float timeRatio = 1 - (m_TimeLoadEndGameScene - Time.time) / endSceneLoadDelay;
-                endGameFadeCanvasGroup.alpha = timeRatio;
+        void ShowRaceCountdownAnimation() {
+            raceCountdownTrigger.Play();
+        }
 
-                float volumeRatio = Mathf.Abs(timeRatio);
-                float volume = Mathf.Clamp(1 - volumeRatio, 0, 1);
-                AudioUtility.SetMasterVolume(volume);
-
-                // See if it's time to load the end scene (after the delay)
-                if (Time.time >= m_TimeLoadEndGameScene)
-                {
-                    if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
-                        agent.enabled = false;
-                    }
-                    SceneManager.LoadScene(m_SceneToLoad);
-                    gameState = GameState.Play;
-                }
+        IEnumerator ShowObjectivesRoutine() {
+            while (m_ObjectiveManager.Objectives.Count == 0)
+                yield return null;
+            yield return new WaitForSecondsRealtime(0.2f);
+            for (int i = 0; i < m_ObjectiveManager.Objectives.Count; i++)
+            {
+            if (m_ObjectiveManager.Objectives[i].displayMessage)m_ObjectiveManager.Objectives[i].displayMessage.Display();
+            yield return new WaitForSecondsRealtime(1f);
             }
         }
-        else
+
+        void Update()
         {
-            if (m_ObjectiveManager.AreAllObjectivesCompleted())
-                EndGame(true);
+            if (gameState != GameState.Play)
+            {
+                elapsedTimeBeforeEndScene += Time.deltaTime;
+                if(elapsedTimeBeforeEndScene >= endSceneLoadDelay)
+                {
 
-            if (m_TimeManager.IsFinite && m_TimeManager.IsOver)
-                EndGame(false);
+                    float timeRatio = 1 - (m_TimeLoadEndGameScene - Time.time) / endSceneLoadDelay;
+                    endGameFadeCanvasGroup.alpha = timeRatio;
+
+                    float volumeRatio = Mathf.Abs(timeRatio);
+                    float volume = Mathf.Clamp(1 - volumeRatio, 0, 1);
+                    AudioUtility.SetMasterVolume(volume);
+
+                    // See if it's time to load the end scene (after the delay)
+                    if (Time.time >= m_TimeLoadEndGameScene)
+                    {
+                        if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
+                            agent.enabled = false;
+                        }
+                        SceneManager.LoadScene(m_SceneToLoad);
+                        gameState = GameState.Play;
+                    }
+                }
+            }
+            else
+            {
+                if (m_ObjectiveManager.AreAllObjectivesCompleted())
+                    EndGame(true);
+
+                if (m_TimeManager.IsFinite && m_TimeManager.IsOver)
+                    EndGame(false);
+            }
         }
-    }
 
-    void EndGame(bool win)
-    {
-        // unlocks the cursor before leaving the scene, to be able to click buttons
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        m_TimeManager.StopRace();
-
-        if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
-            agent.StopRecorders();
-        }
-
-        // Remember that we need to load the appropriate end scene after a delay
-        gameState = win ? GameState.Won : GameState.Lost;
-        endGameFadeCanvasGroup.gameObject.SetActive(true);
-        if (win)
+        void EndGame(bool win)
         {
-            m_SceneToLoad = winSceneName;
-            m_TimeLoadEndGameScene = Time.time + endSceneLoadDelay + delayBeforeFadeToBlack;
+            // unlocks the cursor before leaving the scene, to be able to click buttons
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
 
-            // play a sound on win
-            var audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.clip = victorySound;
-            audioSource.playOnAwake = false;
-            audioSource.outputAudioMixerGroup = AudioUtility.GetAudioGroup(AudioUtility.AudioGroups.HUDVictory);
-            audioSource.PlayScheduled(AudioSettings.dspTime + delayBeforeWinMessage);
+            m_TimeManager.StopRace();
 
-            // create a game message
-            winDisplayMessage.delayBeforeShowing = delayBeforeWinMessage;
-            winDisplayMessage.gameObject.SetActive(true);
+            if (playerKart.TryGetComponent<KartAgent>(out var agent)) {
+                agent.StopRecorders();
+            }
+
+            // Remember that we need to load the appropriate end scene after a delay
+            gameState = win ? GameState.Won : GameState.Lost;
+            endGameFadeCanvasGroup.gameObject.SetActive(true);
+            if (win)
+            {
+                m_SceneToLoad = winSceneName;
+                m_TimeLoadEndGameScene = Time.time + endSceneLoadDelay + delayBeforeFadeToBlack;
+
+                // play a sound on win
+                var audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.clip = victorySound;
+                audioSource.playOnAwake = false;
+                audioSource.outputAudioMixerGroup = AudioUtility.GetAudioGroup(AudioUtility.AudioGroups.HUDVictory);
+                audioSource.PlayScheduled(AudioSettings.dspTime + delayBeforeWinMessage);
+
+                // create a game message
+                winDisplayMessage.delayBeforeShowing = delayBeforeWinMessage;
+                winDisplayMessage.gameObject.SetActive(true);
+            }
         }
     }
 }

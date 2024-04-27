@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5263d6b6619ef0743af9d0e76a563b72, type: 3}
   m_Name: DefaultTrainingSettings
   m_EditorClassIdentifier: 
-  m_CondaActivateScript: D:\miniconda3\Scripts\activate.bat
+  m_CondaActivateScript: C:\Users\Matteo\anaconda3\Scripts\activate.bat
   m_DefaultTrainer: trainer.yaml
   m_DefaultTrackInstances: 4
   m_DefaultAgentInstances: 16

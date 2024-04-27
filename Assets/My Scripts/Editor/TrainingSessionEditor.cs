@@ -20,6 +20,7 @@ public class TrainingSessionEditor : EditorWindow
     private SerializedObject serializedSession;
     private SessionFSM state;
     private int sessionIndex;
+    private string commonName;
 
     Vector2 scrollPosition = Vector2.zero;
 
@@ -33,7 +34,7 @@ public class TrainingSessionEditor : EditorWindow
 
     [MenuItem ("MLAgents/Setup Training", priority = 10)]
     public static void ShowWindow() {
-        GetWindow(typeof(TrainingSessionEditor));
+        GetWindow<TrainingSessionEditor>();
     }
 
     public void Awake() {
@@ -48,8 +49,8 @@ public class TrainingSessionEditor : EditorWindow
     }
 
     public void OnGUI() {
+        commonName = EditorGUILayout.TextField("Session Username", commonName);
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-            GUILayout.Label("Training Session Settings", EditorStyles.boldLabel);
             serializedSession.Update();
             SerializedProperty settingsProperty = serializedSession.FindProperty("session");
 
@@ -72,6 +73,7 @@ public class TrainingSessionEditor : EditorWindow
                 }
             EditorGUILayout.EndHorizontal();
             
+        EditorGUILayout.EndScrollView();
             EditorGUILayout.Separator();
             
             EditorGUILayout.BeginHorizontal();
@@ -91,6 +93,7 @@ public class TrainingSessionEditor : EditorWindow
             
             EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("Start")) {
+                    session.SetCommonName(commonName);
                     if (session.Check()) {
                         state = SessionFSM.Started;
                     }
@@ -102,7 +105,6 @@ public class TrainingSessionEditor : EditorWindow
                 }
             EditorGUILayout.EndHorizontal();
 
-        EditorGUILayout.EndScrollView();
     }
 
     private void Update() {

@@ -16,11 +16,11 @@
 # Downloaded demos
 [Dd]emos/
 
-# Timers
-/Assets/ML-Agents/Timers/
+# Timers and trained models
+/Assets/ML-Agents/
 
 # Machine-specific settings
-/Assets/My\ Scripts/Editor/*.asset
+/Assets/My\ Scripts/Editor/*.asset*
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data

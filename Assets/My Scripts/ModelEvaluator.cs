@@ -56,7 +56,6 @@ namespace KartGame.Custom {
         private int splitTimer;
         private bool isEvaluating;
         private int evaluationCounter;
-        private EvaluationResult evaluationResults;
         [SerializeField, HideInInspector] private bool standalone;
 
         private Trajectory originalTrajectory;

@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
+
 namespace KartGame.Custom.Training {
     [Serializable]
     public struct SessionStep {
@@ -57,6 +58,8 @@ namespace KartGame.Custom.Training {
     [Serializable]
     public struct TrainingSession: IEnumerable<SessionStep> {
         public SessionStep[] steps;
+        
+        private string commonName;
         private string condaStartScript;
 
         public int Length {
@@ -74,9 +77,10 @@ namespace KartGame.Custom.Training {
             set => steps[index] = value;
         }
 
-        public TrainingSession(SessionStep[] steps, string condaStartScript) {
+        public TrainingSession(SessionStep[] steps, string condaStartScript, string commonName = "") {
             this.steps = steps;
             this.condaStartScript = condaStartScript;
+            this.commonName = commonName;
         }
 
         public bool Check() {
@@ -108,6 +112,7 @@ namespace KartGame.Custom.Training {
                     if (steps[i].trainingSettings.runId == "") throw new ArgumentNullException($"Step {i} RunID");
                     
                     if (steps[i].trainingSettings.initializeFrom != "") {
+                        steps[i].trainingSettings.initializeFrom = AddPrefix(commonName, steps[i].trainingSettings.initializeFrom);
                         if (!Directory.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/results", steps[i].trainingSettings.initializeFrom))) {
                             string nameToMatch = steps[i].trainingSettings.initializeFrom;
                             if (!steps[..i].Any(step => step.trainingSettings.runId == nameToMatch)) {
@@ -117,6 +122,8 @@ namespace KartGame.Custom.Training {
                     }
                     if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", steps[i].trainingSettings.trainer))) throw new FileNotFoundException($"Step {i} Trainer: {steps[i].trainingSettings.trainer}");
                     if (!File.Exists(condaStartScript)) throw new FileNotFoundException($"Conda activation script: {condaStartScript}");
+                    
+                    steps[i].trainingSettings.runId = AddPrefix(commonName, steps[i].trainingSettings.runId);
                 } else {
                     if (steps[i].evaluationSettings.numberOfEvaluations == 0) {
                         steps[i].evaluationSettings.numberOfEvaluations = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultNumberOfEvaluations").intValue;
@@ -132,6 +139,8 @@ namespace KartGame.Custom.Training {
                     if (steps[i].evaluationSettings.numberOfEvaluations == 0) throw new ArgumentNullException($"Step {i} Number of Evaluations");
                     if (steps[i].evaluationSettings.splitAmount == 0) throw new ArgumentNullException($"Step {i} Split Amount");
                     if (steps[i].evaluationSettings.splitLength == 0) throw new ArgumentNullException($"Step {i} Split Length");
+                
+                    steps[i].evaluationSettings.modelRunId = AddPrefix(commonName, steps[i].evaluationSettings.modelRunId);
                 }
             }
             return true;
@@ -146,6 +155,20 @@ namespace KartGame.Custom.Training {
 
         public void ResetCondaScript() {
             condaStartScript = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_CondaActivateScript").stringValue;
+        }
+
+        public string GetCommonName() {
+            return commonName;
+        }
+
+        public void SetCommonName(string name) {
+            commonName = name;
+        }
+
+        private string AddPrefix(string prefix, string value) {
+            if (value == "" || prefix == "") return value;
+            if (value.StartsWith(prefix)) return value;
+            return prefix + "_" + value;
         }
 
         public static TrainingSession FromFile(string file) {
@@ -212,11 +235,12 @@ namespace KartGame.Custom.Training {
         }
 
         public static void SetupEvaluationScene(EvaluationSettings settings) {
+            string demoPath = $"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{settings.demoFile}";
             string modelPath = $"Assets/ML-Agents/Trained Models/{settings.modelRunId}.onnx";
             ModelAsset model = AssetDatabase.LoadAssetAtPath<ModelAsset>(modelPath);
             if (model == null) throw new FileNotFoundException(modelPath);
             float evaluationTimescale = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultTimescale").floatValue;
-            SetupEvaluationScene(settings.demoFile,
+            SetupEvaluationScene(demoPath,
                                 model,
                                 settings.numberOfEvaluations,
                                 evaluationTimescale,

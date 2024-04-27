@@ -30,7 +30,7 @@ namespace KartGame.Custom.Training {
                 settings = CreateInstance<DefaultEvaluationSettings>();
                 settings.m_DefaultEvaluator = null;
                 settings.m_DefaultAgent = null;
-                settings.m_DefaultNumberOfEvaluations = 10;
+                settings.m_DefaultNumberOfEvaluations = 50;
                 settings.m_DefaultTimescale = 10f;
                 settings.m_DefaultSplitAmount = 20;
                 settings.m_DefaultSplitLength = 20;
