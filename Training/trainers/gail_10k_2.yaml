@@ -30,7 +30,7 @@ behaviors:
         memory_size: 256
 
     # Trainer configurations common to all trainers
-    max_steps: 100000
+    max_steps: 10000
     time_horizon: 512
     summary_freq: 10000
     keep_checkpoints: 1
@@ -49,7 +49,7 @@ behaviors:
         strength: 1.0
         gamma: 0.99
         encoding_size: 128
-        demo_path: demos\demonstrations\0
+        demo_path: demos\demonstrations\2
         learning_rate: 3.0e-4
         use_actions: true
         use_vail: false

@@ -16,12 +16,14 @@ namespace KartGame.Custom {
     public class ModelEvaluator : MonoBehaviour
     {
         private struct EvaluationResult {
+            public string trackName;
             public int splitAmount;
             public int splitLength;
             public float[] splits;
             public float result;
 
-            public EvaluationResult(int splitAmount, int splitLength, float[] splits, float result) {
+            public EvaluationResult(string trackName, int splitAmount, int splitLength, float[] splits, float result) {
+                this.trackName = trackName;
                 this.splitAmount = splitAmount;
                 this.splitLength = splitLength;
                 this.splits = splits;
@@ -220,8 +222,8 @@ namespace KartGame.Custom {
 
         private void SaveToFile() {
             //Debug.Log($"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation.json");
-            string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation.json";
-            EvaluationResult result = new(splitAmount, splitLength, evaluations, evaluations.Average());
+            string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation_{track.name}.json";
+            EvaluationResult result = new(track.name, splitAmount, splitLength, evaluations, evaluations.Average());
             File.WriteAllText(filePath, JsonUtility.ToJson(result));
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
+using KartGame.Custom;
 using KartGame.Custom.Training;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
@@ -16,11 +17,21 @@ public class TrainingSessionEditor : EditorWindow
         Evaluating,
         Waiting
     }
-    public TrainingSession session;
+
+ 
+    public TrainingSession sessionTemplate;
+    private TrainingSession session;
     private SerializedObject serializedSession;
     private SessionFSM state;
-    private int sessionIndex;
+    private int sessionStepIndex;
+
     private string commonName;
+    private string commonTrainer;
+    private bool trackOverride;
+    private Track[] tracks;
+    private bool customNumbering;
+    private string[] numbering;
+    private int sessionIndex;
 
     Vector2 scrollPosition = Vector2.zero;
 
@@ -39,7 +50,10 @@ public class TrainingSessionEditor : EditorWindow
 
     public void Awake() {
         state = SessionFSM.Stopped;
+        sessionStepIndex = 0;
         sessionIndex = 0;
+        tracks = new Track[0];
+        numbering = new string[0];
     }
 
     public void OnEnable() {
@@ -49,10 +63,44 @@ public class TrainingSessionEditor : EditorWindow
     }
 
     public void OnGUI() {
-        commonName = EditorGUILayout.TextField("Session Username", commonName);
+        commonName = EditorGUILayout.TextField(new GUIContent("Session Username", "This prefix will be applied to all RunId, InitializeFrom and ModelRunId fields"), commonName);
+        commonTrainer = EditorGUILayout.TextField(new GUIContent("Session Trainer", "This trainer will override all Trainer fields (suffix is added as usual, if needed)"), commonTrainer);
+        trackOverride = EditorGUILayout.BeginFoldoutHeaderGroup(trackOverride, new GUIContent("Track Override", "The entire session will be executed for each of these tracks"));
+            if (trackOverride) {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.BeginHorizontal();
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("+")) {
+                        System.Array.Resize(ref tracks, tracks.Length + 1);
+                        System.Array.Resize(ref numbering, numbering.Length + 1);
+                    }
+                    if (GUILayout.Button("-")) {
+                        if (tracks.Length > 0) {
+                            System.Array.Resize(ref tracks, tracks.Length - 1);
+                            System.Array.Resize(ref numbering, numbering.Length - 1);
+                        }
+                    }
+                EditorGUILayout.EndHorizontal();
+                for (int i = 0; i < tracks.Length; i++) {
+                    tracks[i] = (Track) EditorGUILayout.ObjectField($"Track {i}:{GetLabel(i)}", tracks[i], typeof(Track), allowSceneObjects: false);
+                }
+                EditorGUI.indentLevel--;
+            }
+        EditorGUILayout.EndFoldoutHeaderGroup();
+
+        customNumbering = EditorGUILayout.BeginToggleGroup(new GUIContent("Custom Track Number Suffix", "Wheter the automatic track number suffix should follow regular ordinal numbering or a custom numbering (supports non numerical suffixes)"), customNumbering);
+            if (customNumbering) {
+                EditorGUI.indentLevel++;
+                for (int i = 0; i < numbering.Length; i++) {
+                    numbering[i] = EditorGUILayout.TextField($"Track {i} suffix:{GetLabel(i)}", numbering[i]);
+                }
+                EditorGUI.indentLevel--;
+            }
+        EditorGUILayout.EndToggleGroup();
+
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
             serializedSession.Update();
-            SerializedProperty settingsProperty = serializedSession.FindProperty("session");
+            SerializedProperty settingsProperty = serializedSession.FindProperty("sessionTemplate");
 
             EditorGUILayout.PropertyField(settingsProperty, includeChildren: true);
             serializedSession.ApplyModifiedProperties();
@@ -60,51 +108,52 @@ public class TrainingSessionEditor : EditorWindow
             EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("Save")) {
                     string savefile = EditorUtility.SaveFilePanel("Save Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "config", "json");
-                    if (savefile != "") session.ToFile(savefile);
+                    if (savefile != "") sessionTemplate.ToFile(savefile);
                 }
 
                 if (GUILayout.Button("Load")) {
                     string savefile = EditorUtility.OpenFilePanel("Load Training Session Configuration", $"{Directory.GetParent(Application.dataPath)}/Training/configs", "json");
-                    if (savefile != "") session = TrainingSession.FromFile(savefile);
+                    if (savefile != "") sessionTemplate = TrainingSession.FromFile(savefile);
                     serializedSession.ApplyModifiedProperties();
                 }
                 if (GUILayout.Button("Clear")) {
-                    session.steps = null;
+                    sessionTemplate.steps = null;
                 }
             EditorGUILayout.EndHorizontal();
             
         EditorGUILayout.EndScrollView();
-            EditorGUILayout.Separator();
-            
-            EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField($"Conda: {session.GetCondaScript()}");
-                if (GUILayout.Button("Edit")) {
-                    EditorUtility.OpenPropertyEditor(AssetDatabase.LoadAssetAtPath<Object>("Assets/My Scripts/Editor/DefaultTrainingSettings.asset"));
+        EditorGUILayout.Separator();
+        
+        EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField($"Conda: {sessionTemplate.GetCondaScript()}");
+            if (GUILayout.Button("Edit")) {
+                EditorUtility.OpenPropertyEditor(AssetDatabase.LoadAssetAtPath<Object>("Assets/My Scripts/Editor/DefaultTrainingSettings.asset"));
+            }
+            if (GUILayout.Button("↻")) {
+                sessionTemplate.ResetCondaScript();
+                serializedSession.Update();
+            }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.LabelField($"State: {state}");
+        EditorGUILayout.LabelField($"Session: {sessionIndex}");
+        EditorGUILayout.LabelField($"Step: {sessionStepIndex}");
+        
+        EditorGUILayout.Separator();
+        
+        EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Start")) {
+                Inject();
+                if (session.Check()) {
+                    state = SessionFSM.Started;
                 }
-                if (GUILayout.Button("↻")) {
-                    session.ResetCondaScript();
-                    serializedSession.Update();
-                }
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.LabelField($"State: {state}");
-            EditorGUILayout.LabelField($"Index: {sessionIndex}");
-            
-            EditorGUILayout.Separator();
-            
-            EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button("Start")) {
-                    session.SetCommonName(commonName);
-                    if (session.Check()) {
-                        state = SessionFSM.Started;
-                    }
-                }
-                if (GUILayout.Button("STOP")) {
-                    if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
-                    state = SessionFSM.Stopped;
-                    sessionIndex = 0;
-                }
-            EditorGUILayout.EndHorizontal();
-
+            }
+            if (GUILayout.Button("STOP")) {
+                if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
+                state = SessionFSM.Stopped;
+                sessionStepIndex = 0;
+                sessionIndex = 0;
+            }
+        EditorGUILayout.EndHorizontal();
     }
 
     private void Update() {
@@ -115,9 +164,15 @@ public class TrainingSessionEditor : EditorWindow
             case SessionFSM.Stopped:
                 return;
             case SessionFSM.Started:
-                if (sessionIndex >= session.Length) {
-                    Awake();
-                    return;
+                if (sessionStepIndex >= sessionTemplate.Length) {
+                    sessionIndex++;
+                    if (sessionIndex >= tracks.Length) {
+                        Awake();
+                        return;
+                    }
+                    sessionStepIndex = 0;
+                    Inject();
+                    session.Check();
                 }
                 EditorCoroutineUtility.StartCoroutine(Execute(), this);
                 state = SessionFSM.Waiting;
@@ -125,18 +180,39 @@ public class TrainingSessionEditor : EditorWindow
         }
     }
 
+    private void Inject() {
+        string trackNumber;
+        Track trackToBeInjected;
+        
+        session = new(sessionTemplate);
+
+        if (tracks.Length == 0) {
+            trackToBeInjected = null;
+            trackNumber = "";
+        } else {
+            trackToBeInjected = tracks[sessionIndex];
+            if (customNumbering) {
+                trackNumber = numbering[sessionIndex];
+            } else {
+                trackNumber = sessionIndex.ToString();
+            }
+        }
+
+        session.InjectData(commonName, commonTrainer, trackToBeInjected, trackNumber);
+    }
+
     private IEnumerator Execute() {
-        switch (session[sessionIndex].stepType) {
+        switch (session[sessionStepIndex].stepType) {
             case SessionStepType.Training:
-                TrainingSession.SetupTrainingScene(session[sessionIndex].trainingSettings);
+                TrainingSession.SetupTrainingScene(session[sessionStepIndex].trainingSettings);
                 LaunchTrainer(session.GetCondaScript(),
-                                session[sessionIndex].trainingSettings.trainer,
-                                session[sessionIndex].trainingSettings.runId,
-                                session[sessionIndex].trainingSettings.initializeFrom);
-                yield return EditorCoroutineUtility.StartCoroutineOwnerless(DelayedEnterPlaymode(10f));
+                                session[sessionStepIndex].trainingSettings.trainer,
+                                session[sessionStepIndex].trainingSettings.runId,
+                                session[sessionStepIndex].trainingSettings.initializeFrom);
+                yield return EditorCoroutineUtility.StartCoroutine(DelayedEnterPlaymode(10f), this);
             break;
             case SessionStepType.Evaluation:
-                TrainingSession.SetupEvaluationScene(session[sessionIndex].evaluationSettings);
+                TrainingSession.SetupEvaluationScene(session[sessionStepIndex].evaluationSettings);
                 EditorApplication.EnterPlaymode();
             break;
         }
@@ -146,7 +222,7 @@ public class TrainingSessionEditor : EditorWindow
         switch (stateChange) {
             case PlayModeStateChange.ExitingEditMode:
                 if (state == SessionFSM.Waiting) {
-                    switch (session[sessionIndex].stepType) {
+                    switch (session[sessionStepIndex].stepType) {
                         case SessionStepType.Training:
                             state = SessionFSM.Training;
                         break;
@@ -158,14 +234,22 @@ public class TrainingSessionEditor : EditorWindow
             break;
             case PlayModeStateChange.ExitingPlayMode:
                 if (state == SessionFSM.Training) {
-                    MoveTrainedModel(session[sessionIndex].trainingSettings.runId);
-                    sessionIndex++;
+                    MoveTrainedModel(session[sessionStepIndex].trainingSettings.runId);
+                    sessionStepIndex++;
                     state = SessionFSM.Started;
                 } else if (state == SessionFSM.Evaluating) {
-                    sessionIndex++;
+                    sessionStepIndex++;
                     state = SessionFSM.Started;
                 }
             break;
+        }
+    }
+
+    private string GetLabel(int i) {
+        if (i == sessionIndex && state != SessionFSM.Stopped) {
+            return "▶";
+        } else {
+            return "";
         }
     }
 
