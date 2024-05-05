@@ -35,7 +35,8 @@ public class ImportFromServer : EditorWindow
         EditorGUI.indentLevel++;
         switch (downloadType) {
             case DownloadType.NPerTrack:
-                lapsToDownload = EditorGUILayout.IntField("Laps to Download", lapsToDownload);
+                lapsToDownload = EditorGUILayout.IntSlider("Training Laps", lapsToDownload, 1, laps);
+                EditorGUILayout.LabelField($"Evaluation Laps:    {laps - lapsToDownload}");
             break;
             case DownloadType.Cumulative:
                 demoMask = EditorGUILayout.MaskField("Training Tracks", demoMask, trackNameList);
@@ -64,7 +65,6 @@ public class ImportFromServer : EditorWindow
                 int selectedCount = MaskToNumberOfSelected(demoMask, trackNameList.Length);
                 int[] trainingArray = new int[selectedCount];
                 int trainingIndex = 0;
-                Debug.Log(trackNameList.Length - selectedCount);
                 int[] evaluationArray = new int [trackNameList.Length - selectedCount];
                 int evaluationIndex = 0;
 

@@ -206,7 +206,6 @@ namespace KartGame.Custom {
             for (int i = 0; i < splitAmount; i++) {
                 evaluations[startingIndex + i] = Trajectory.Evaluate(subTrajectories[i], AISubtrajectories[i]);
             }
-            //Debug.Log($"Evaluated {splitAmount} subtrajectories of {splitLength*Time.fixedDeltaTime*1000} ms each. Average Similarity: {evaluations.Average()}");
         }
 
         private void FixedUpdate() {
@@ -221,7 +220,6 @@ namespace KartGame.Custom {
         }
 
         private void SaveToFile() {
-            //Debug.Log($"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation.json");
             string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation_{track.name}.json";
             EvaluationResult result = new(track.name, splitAmount, splitLength, evaluations, evaluations.Average());
             File.WriteAllText(filePath, JsonUtility.ToJson(result));
