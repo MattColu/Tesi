@@ -79,21 +79,17 @@ public class ImportFromServer : EditorWindow
                 }
 
                 for (int i = 1; i <= selectedCount; i++, folderN++) {
-                    foreach (int trackN in trainingArray[..i]) {
+                    foreach (int trainingTrackN in trainingArray[..i]) {
                         for (int lap = 0; lap < laps; lap++) {
-                            DownloadLap(trackNameList[trackN], lap, folderN.ToString(), true);
+                            DownloadLap(trackNameList[trainingTrackN], lap, folderN.ToString(), true);
+                        }
+                    }
+                    foreach (int evaluationTrackN in evaluationArray) {
+                        for (int lap = 0; lap < laps; lap++) {
+                            DownloadLap(trackNameList[evaluationTrackN], lap, folderN.ToString(), false);
                         }
                     }
                 }
-
-                folderN = 0;
-                foreach (int trackN in evaluationArray) {
-                    for (int lap = 0; lap < laps; lap++) {
-                        DownloadLap(trackNameList[trackN], lap, folderN.ToString(), false);
-                    }
-                    folderN++;
-                }
-
             break;
             case DownloadType.NPerTrack:
                 foreach (var trackName in trackNameList) {
