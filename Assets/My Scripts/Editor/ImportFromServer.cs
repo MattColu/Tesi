@@ -40,7 +40,8 @@ public class ImportFromServer : EditorWindow
             break;
             case DownloadType.Cumulative:
                 demoMask = EditorGUILayout.MaskField("Training Tracks", demoMask, trackNameList);
-                EditorGUILayout.MaskField("Evaluation Tracks", int.MaxValue-demoMask, trackNameList);                
+                EditorGUILayout.MaskField("Evaluation Tracks", int.MaxValue-demoMask, trackNameList);
+                lapsToDownload = EditorGUILayout.IntSlider("Training Laps", lapsToDownload, 1, laps);
             break;
         }
         EditorGUI.indentLevel--;
@@ -77,19 +78,18 @@ public class ImportFromServer : EditorWindow
                         trainingIndex++;
                     }
                 }
-
-                for (int i = 1; i <= selectedCount; i++, folderN++) {
-                    foreach (int trainingTrackN in trainingArray[..i]) {
-                        for (int lap = 0; lap < laps; lap++) {
-                            DownloadLap(trackNameList[trainingTrackN], lap, folderN.ToString(), true);
-                        }
-                    }
-                    foreach (int evaluationTrackN in evaluationArray) {
-                        for (int lap = 0; lap < laps; lap++) {
-                            DownloadLap(trackNameList[evaluationTrackN], lap, folderN.ToString(), false);
-                        }
+                
+                foreach (int trainingTrackN in trainingArray) {
+                    for (int lap = 0; lap < lapsToDownload; lap++) {
+                        DownloadLap(trackNameList[trainingTrackN], lap, trainingTrackN.ToString(), true);
                     }
                 }
+                foreach (int evaluationTrackN in evaluationArray) {
+                    for (int lap = 0; lap < laps; lap++) {
+                        DownloadLap(trackNameList[evaluationTrackN], lap, evaluationTrackN.ToString(), false);
+                    }
+                }
+                
             break;
             case DownloadType.NPerTrack:
                 foreach (var trackName in trackNameList) {
