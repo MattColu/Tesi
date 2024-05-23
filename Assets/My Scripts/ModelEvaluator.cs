@@ -153,6 +153,7 @@ namespace KartGame.Custom {
                     if (index < originalTrajectory.points.Length) {             //Take splitDuration points from original trajectory
                         t[d] = originalTrajectory.points[index];
                     } else {                                                    //If partial trajectory, discard: last subtrajectory -> return
+                        splitAmount--;
                         return;
                     }
                 }
@@ -193,6 +194,7 @@ namespace KartGame.Custom {
                 } else {
                     if (standalone) {
                         enabled = false;
+                        Debug.Log($"Evaluated model \"{MLAgentTrainedModel.name}\" on {splitAmount} trajectories of {splitLength} timesteps each.\nAverage: {evaluations.Average()}");
                     } else {
                         SaveToFile();
                         EditorApplication.ExitPlaymode();
@@ -222,6 +224,7 @@ namespace KartGame.Custom {
         private void SaveToFile() {
             string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation_{track.name}.json";
             EvaluationResult result = new(track.name, splitAmount, splitLength, evaluations, evaluations.Average());
+            if (File.Exists(filePath)) File.Delete(filePath);
             File.WriteAllText(filePath, JsonUtility.ToJson(result));
         }
     }

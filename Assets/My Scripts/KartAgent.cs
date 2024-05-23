@@ -301,11 +301,11 @@ namespace KartGame.Custom.AI
                         stateRecorder.OnWriteQueue += queue => StartCoroutine(RESTManager.UploadRecording(StateRecorder.ToByteArray(queue), "state", trackName, lapCount));
                         streamDemonstrationRecorder.OnRecorderClosed += demo => StartCoroutine(RESTManager.UploadRecording(demo, "demo", trackName, lapCount));
                     } else {
-                        string demoName = $"{MenuOptions.Instance.name}{MenuOptions.Instance.UID}/{Track.name}";
-                        stateRecorder.filename = demoName;
-                        demonstrationRecorder.DemonstrationName = demoName;
+                        Debug.LogError("Connection to the server was not set up");
                     }
                 }
+            } else {
+                Debug.LogError("Could not retrieve user info");
             }
         }
 

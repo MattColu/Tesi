@@ -18,7 +18,8 @@ public class ImportFromServer : EditorWindow
 
     private readonly string[] trackNameList = {"Track0", "Track1", "Track2", "Track3", "Track4"};
 
-    private const int laps = 5;
+    // private const int laps = 5;
+    private const int laps = 10;
     private DownloadType downloadType;
     private int lapsToDownload;
     private int demoMask;

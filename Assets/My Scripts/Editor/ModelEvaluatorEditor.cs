@@ -62,6 +62,7 @@ public class ModelEvaluatorEditor: EditorWindow
 
         if (GUILayout.Button("Evaluate")) {
             CheckInput();
+            if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
             TrainingSession.SetupEvaluationScene(
                 demoFilepath,
                 model,

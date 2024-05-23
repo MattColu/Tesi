@@ -280,7 +280,13 @@ namespace KartGame.Custom.Training {
 
         public static void SetupEvaluationScene(string demoFolder, ModelAsset model, int numberOfEvaluations, float evaluationTimeScale, int splitAmount, int splitLength, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
             if (model == null) throw new NullReferenceException("Model is null");
-            foreach (string demoFile in Directory.EnumerateFiles(demoFolder, "*.state")) {
+            List<string> demoFiles;
+            if (File.Exists(demoFolder)) {
+                demoFiles = new() {demoFolder};
+            } else {
+                demoFiles = Directory.EnumerateFiles(demoFolder, "*.state").ToList();
+            }
+            foreach (string demoFile in demoFiles) {
                 if (Replay.SetupAndOpenReplayScene(demoFile, replay: false)) {
                     DestroyKarts();
                     
