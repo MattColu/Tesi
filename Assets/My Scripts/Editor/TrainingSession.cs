@@ -45,6 +45,7 @@ namespace KartGame.Custom.Training {
     [Serializable]
     public struct EvaluationSettings {
         public string demoFolder;
+        private int fileCount;
         public string modelRunId;
         public int numberOfEvaluations;
         public int splitAmount;
@@ -52,6 +53,14 @@ namespace KartGame.Custom.Training {
 
         public override readonly string ToString() {
             return $"Demo Folder: {demoFolder}\nModel Run Id: {modelRunId}\nSplit Amount: {splitAmount}\nSplit Length: {splitLength}";
+        }
+
+        public void SetFileCount(int count) {
+            fileCount = count;
+        }
+
+        public int GetFileCount() {
+            return fileCount;
         }
     }
 
@@ -135,14 +144,19 @@ namespace KartGame.Custom.Training {
                     if (steps[i].evaluationSettings.splitLength == 0) {
                         steps[i].evaluationSettings.splitLength = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultSplitLength").intValue;
                     }
-                    if (steps[i].evaluationSettings.demoFolder == "") throw new ArgumentNullException($"Step {i} Demo File");
+                    if (steps[i].evaluationSettings.demoFolder == "") throw new ArgumentNullException($"Step {i} Demo File/Folder");
                     if (steps[i].evaluationSettings.modelRunId == "") throw new ArgumentNullException($"Step {i} Model Run Id");
                     if (steps[i].evaluationSettings.numberOfEvaluations == 0) throw new ArgumentNullException($"Step {i} Number of Evaluations");
                     if (steps[i].evaluationSettings.splitAmount == 0) throw new ArgumentNullException($"Step {i} Split Amount");
                     if (steps[i].evaluationSettings.splitLength == 0) throw new ArgumentNullException($"Step {i} Split Length");
                     
                     if (!Directory.Exists($"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{steps[i].evaluationSettings.demoFolder}")) throw new DirectoryNotFoundException($"Step {i} Demo Folder: {steps[i].evaluationSettings.demoFolder}");
-                    if (Directory.EnumerateFiles($"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{steps[i].evaluationSettings.demoFolder}", "*.state").Count() == 0) throw new FileLoadException($"Step {i} Demo Folder {steps[i].evaluationSettings.demoFolder} is empty");
+                    
+                    int fileCount = Directory.EnumerateFiles($"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{steps[i].evaluationSettings.demoFolder}", "*.state").Count();
+                    if (fileCount == 0) throw new FileLoadException($"Step {i} Demo Folder {steps[i].evaluationSettings.demoFolder} is empty");
+                    steps[i].evaluationSettings.SetFileCount(fileCount);
+
+                    steps[i].evaluationSettings.numberOfEvaluations /= fileCount;
                 }
             }
             return true;
@@ -264,13 +278,17 @@ namespace KartGame.Custom.Training {
             InstantiateKarts(settings, instantiatedTracks);
         }
 
-        public static void SetupEvaluationScene(EvaluationSettings settings) {
+        public static void SetupEvaluationScene(EvaluationSettings settings, int demoIndex = 0) {
             string demoFolder = $"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{settings.demoFolder}";
+            
             string modelPath = $"Assets/ML-Agents/Trained Models/{settings.modelRunId}.onnx";
             ModelAsset model = AssetDatabase.LoadAssetAtPath<ModelAsset>(modelPath);
             if (model == null) throw new FileNotFoundException(modelPath);
+            
             float evaluationTimescale = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultTimescale").floatValue;
+            
             SetupEvaluationScene(demoFolder,
+                                demoIndex,
                                 model,
                                 settings.numberOfEvaluations,
                                 evaluationTimescale,
@@ -278,42 +296,47 @@ namespace KartGame.Custom.Training {
                                 settings.splitLength);
         }
 
-        public static void SetupEvaluationScene(string demoFolder, ModelAsset model, int numberOfEvaluations, float evaluationTimeScale, int splitAmount, int splitLength, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
+        public static void SetupEvaluationScene(string demoFileOrFolder, int demoIndex, ModelAsset model, int numberOfEvaluations, float evaluationTimeScale, int splitAmount, int splitLength, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
             if (model == null) throw new NullReferenceException("Model is null");
-            List<string> demoFiles;
-            if (File.Exists(demoFolder)) {
-                demoFiles = new() {demoFolder};
+            
+            string demoFile;
+            
+            if (File.Exists(demoFileOrFolder)) {
+                demoFile = demoFileOrFolder;
             } else {
-                demoFiles = Directory.EnumerateFiles(demoFolder, "*.state").ToList();
+                List<string> demoFiles = Directory.EnumerateFiles(demoFileOrFolder, "*.state").ToList();
+                if (demoIndex >= demoFiles.Count) return;
+                demoFile = demoFiles[demoIndex];
             }
-            foreach (string demoFile in demoFiles) {
-                if (Replay.SetupAndOpenReplayScene(demoFile, replay: false)) {
-                    DestroyKarts();
-                    
-                    Track trackInstance = GameObject.FindObjectOfType<Track>();
-                    GameObject.DestroyImmediate(GameObject.FindObjectOfType<CinemachineVirtualCamera>().gameObject);
-                    GameObject.DestroyImmediate(GameObject.FindObjectOfType<CinemachineBrain>());
-                    
-                    KartAgent agentPrefab = (KartAgent) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
-                    ModelEvaluator evaluatorPrefab = (ModelEvaluator) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultEvaluator").objectReferenceValue;
-                    
-                    if (evaluatorPrefab == null) throw new FileNotFoundException("Default Evaluator Prefab was not defined");
-                    
-                    InstantiateEvaluator(evaluatorPrefab,
-                                        agentPrefab,
-                                        demoFile,
-                                        model,
-                                        trackInstance,
-                                        numberOfEvaluations,
-                                        evaluationTimeScale,
-                                        splitAmount,
-                                        splitLength,
-                                        originalSubtrajectoryColor,
-                                        agentSubtrajectoryColor,
-                                        drawOriginalFullTrajectory,
-                                        originalTrajectoryColor,
-                                        standalone);
-                }
+            
+            if (Replay.SetupAndOpenReplayScene(demoFile, replay: false)) {
+                DestroyKarts();
+                
+                Track trackInstance = GameObject.FindObjectOfType<Track>();
+                GameObject.DestroyImmediate(GameObject.FindObjectOfType<CinemachineVirtualCamera>().gameObject);
+                GameObject.DestroyImmediate(GameObject.FindObjectOfType<CinemachineBrain>());
+                
+                KartAgent agentPrefab = (KartAgent) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
+                ModelEvaluator evaluatorPrefab = (ModelEvaluator) DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultEvaluator").objectReferenceValue;
+                
+                if (evaluatorPrefab == null) throw new FileNotFoundException("Default Evaluator Prefab was not defined");
+                
+                InstantiateEvaluator(evaluatorPrefab,
+                                    agentPrefab,
+                                    demoFile,
+                                    model,
+                                    trackInstance,
+                                    numberOfEvaluations,
+                                    evaluationTimeScale,
+                                    splitAmount,
+                                    splitLength,
+                                    originalSubtrajectoryColor,
+                                    agentSubtrajectoryColor,
+                                    drawOriginalFullTrajectory,
+                                    originalTrajectoryColor,
+                                    standalone);
+            } else {
+                Debug.LogError($"Could not open replay scene for file {demoFile}");
             }
         }
 
@@ -323,7 +346,7 @@ namespace KartGame.Custom.Training {
             }
         }
 
-        public static ModelEvaluator InstantiateEvaluator(ModelEvaluator evaluatorPrefab, KartAgent agentPrefab, string demoFilepath, ModelAsset model, Track trackInstance, int numberOfEvaluations, float evaluationTimescale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false) {
+        public static ModelEvaluator InstantiateEvaluator(ModelEvaluator evaluatorPrefab, KartAgent agentPrefab, string demoFilepath, ModelAsset model, Track trackInstance, int numberOfEvaluations, float evaluationTimescale, int splitAmount, int splitDuration, Color? originalSubtrajectoryColor = null, Color? agentSubtrajectoryColor = null, bool drawOriginalFullTrajectory = false, Color? originalTrajectoryColor = null, bool standalone = false, Action callback = null) {
             var empty = new GameObject();
             empty.SetActive(false);
             ModelEvaluator evaluatorInstance = GameObject.Instantiate(evaluatorPrefab, empty.transform);

@@ -32,6 +32,8 @@ public class TrainingSessionEditor : EditorWindow
     private bool customNumbering;
     private string[] numbering;
     private int sessionIndex;
+    private int internalEvaluationIndex;
+    private int internalEvaluationNumber;
 
     Vector2 scrollPosition = Vector2.zero;
 
@@ -52,6 +54,7 @@ public class TrainingSessionEditor : EditorWindow
         state = SessionFSM.Stopped;
         sessionStepIndex = 0;
         sessionIndex = 0;
+        internalEvaluationIndex = 0;
         tracks = new Track[0];
         numbering = new string[0];
     }
@@ -136,8 +139,14 @@ public class TrainingSessionEditor : EditorWindow
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.LabelField($"State: {state}");
         EditorGUILayout.LabelField($"Session: {sessionIndex}");
-        EditorGUILayout.LabelField($"Step: {sessionStepIndex}");
-        
+        EditorGUI.indentLevel++;
+            EditorGUILayout.LabelField($"Step: {sessionStepIndex}");
+            if (state == SessionFSM.Evaluating) {
+                EditorGUI.indentLevel++;
+                    EditorGUILayout.LabelField($"Evaluation: {internalEvaluationIndex+1}/{internalEvaluationNumber}");
+                EditorGUI.indentLevel--;
+            }
+        EditorGUI.indentLevel--;
         EditorGUILayout.Separator();
         
         EditorGUILayout.BeginHorizontal();
@@ -152,6 +161,7 @@ public class TrainingSessionEditor : EditorWindow
                 state = SessionFSM.Stopped;
                 sessionStepIndex = 0;
                 sessionIndex = 0;
+                internalEvaluationIndex = 0;
             }
         EditorGUILayout.EndHorizontal();
     }
@@ -212,7 +222,8 @@ public class TrainingSessionEditor : EditorWindow
                 yield return EditorCoroutineUtility.StartCoroutine(DelayedEnterPlaymode(10f), this);
             break;
             case SessionStepType.Evaluation:
-                TrainingSession.SetupEvaluationScene(session[sessionStepIndex].evaluationSettings);
+                internalEvaluationNumber = session[sessionStepIndex].evaluationSettings.GetFileCount();
+                TrainingSession.SetupEvaluationScene(session[sessionStepIndex].evaluationSettings, internalEvaluationIndex);
                 EditorApplication.EnterPlaymode();
             break;
         }
@@ -238,7 +249,11 @@ public class TrainingSessionEditor : EditorWindow
                     sessionStepIndex++;
                     state = SessionFSM.Started;
                 } else if (state == SessionFSM.Evaluating) {
-                    sessionStepIndex++;
+                    internalEvaluationIndex++;  
+                    if (internalEvaluationIndex >= internalEvaluationNumber) {
+                        sessionStepIndex++;
+                        internalEvaluationIndex = 0;
+                    }
                     state = SessionFSM.Started;
                 }
             break;

@@ -16,17 +16,17 @@ namespace KartGame.Custom {
     public class ModelEvaluator : MonoBehaviour
     {
         private struct EvaluationResult {
-            public string trackName;
+            public string fileName;
+            public int numberOfEvaluations;
             public int splitAmount;
             public int splitLength;
-            public float[] splits;
             public float result;
 
-            public EvaluationResult(string trackName, int splitAmount, int splitLength, float[] splits, float result) {
-                this.trackName = trackName;
+            public EvaluationResult(string fileName, int numberOfEvaluations, int splitAmount, int splitLength, float result) {
+                this.fileName = fileName;
+                this.numberOfEvaluations = numberOfEvaluations;
                 this.splitAmount = splitAmount;
                 this.splitLength = splitLength;
-                this.splits = splits;
                 this.result = result;
             }
         }
@@ -145,14 +145,22 @@ namespace KartGame.Custom {
             }
         }
 
+        // Trajectory splitting formula:
+        // - Subtract the length of a subtraj. from the overall traj. length 
+        //   (Last subtraj. is now taken care of)
+        // - Divide the remaining part of the traj. into splitAmount-1 parts
+        // - Those are the starting points for the subtraj.s (first starts at 0)
         private void GenerateSubtrajectories() {
+            int totalLength = originalTrajectory.points.Length;
+            if (splitLength >= totalLength) throw new InvalidDataException($"Subtrajectory length ({splitLength}) is longer than full trajectory ({totalLength})");
             for (int s=0; s<splitAmount; s++) {
                 StateData[] t = new StateData[splitLength];
-                int index = s * originalTrajectory.points.Length/splitAmount;   //Absolute index of first point of current split
+                int index = s * (totalLength - splitLength)/(splitAmount - 1);  //Absolute index of first point of current split
                 for (int d=0; d<splitLength; d++, index++) {
-                    if (index < originalTrajectory.points.Length) {             //Take splitDuration points from original trajectory
+                    if (index < totalLength) {                                  //Take splitDuration points from original trajectory
                         t[d] = originalTrajectory.points[index];
-                    } else {                                                    //If partial trajectory, discard: last subtrajectory -> return
+                    } else {                                                    //If partial trajectory, discard subtrajectory (should not happen)
+                        Debug.LogError($"Accessed index {index} out of {totalLength}");
                         splitAmount--;
                         return;
                     }
@@ -222,10 +230,11 @@ namespace KartGame.Custom {
         }
 
         private void SaveToFile() {
-            string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluation_{track.name}.json";
-            EvaluationResult result = new(track.name, splitAmount, splitLength, evaluations, evaluations.Average());
-            if (File.Exists(filePath)) File.Delete(filePath);
-            File.WriteAllText(filePath, JsonUtility.ToJson(result));
+            string demoFile = Path.GetFileNameWithoutExtension(demoFilepath);
+            string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluations.jsonl";
+            EvaluationResult result = new(demoFile, numberOfEvaluations, splitAmount, splitLength, evaluations.Average());
+            File.AppendAllLines(filePath, new[] {JsonUtility.ToJson(result)});
+            //File.WriteAllText(filePath, JsonUtility.ToJson(result));
         }
     }
 }

@@ -65,6 +65,7 @@ public class ModelEvaluatorEditor: EditorWindow
             if (EditorApplication.isPlaying) EditorApplication.ExitPlaymode();
             TrainingSession.SetupEvaluationScene(
                 demoFilepath,
+                0,
                 model,
                 numberOfEvaluations,
                 evaluationTimeScale,

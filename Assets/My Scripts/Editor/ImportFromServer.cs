@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.IO;
 using KartGame.Custom;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
@@ -15,6 +15,7 @@ public class ImportFromServer : EditorWindow
     private string serverPath;
     private string fixedServerPath;
     private string localPath;
+    private bool clear;
 
     private readonly string[] trackNameList = {"Track0", "Track1", "Track2", "Track3", "Track4"};
 
@@ -46,11 +47,21 @@ public class ImportFromServer : EditorWindow
             break;
         }
         EditorGUI.indentLevel--;
+        clear = EditorGUILayout.Toggle("Clear Folder", clear);
         if (GUILayout.Button("Import")) {
             localPath = EditorUtility.SaveFolderPanel("Import Location", "Training", "demos");
             if (localPath != "" && Check()) {
+                if (clear) Clear(localPath);
                 Import();
             }
+        }
+    }
+
+    public void Clear(string path) {
+        if (Path.GetFileName(path) != "demos") throw new AccessViolationException(path);
+        if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
+        foreach (string dir in Directory.EnumerateDirectories(path)) {
+            Directory.Delete(dir, true);
         }
     }
 
