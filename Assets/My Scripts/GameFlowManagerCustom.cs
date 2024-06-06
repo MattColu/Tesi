@@ -33,7 +33,6 @@ namespace KartGame.Custom {
 
         public bool autoFindKarts = true;
         public ArcadeKart playerKart;
-        public ArcadeKart dummyKart;
 
         ArcadeKart[] karts;
         ObjectiveManager m_ObjectiveManager;
@@ -111,7 +110,7 @@ namespace KartGame.Custom {
             yield return new WaitForSecondsRealtime(0.2f);
             for (int i = 0; i < m_ObjectiveManager.Objectives.Count; i++)
             {
-            if (m_ObjectiveManager.Objectives[i].displayMessage)m_ObjectiveManager.Objectives[i].displayMessage.Display();
+            //if (m_ObjectiveManager.Objectives[i].displayMessage)m_ObjectiveManager.Objectives[i].displayMessage.Display();
             yield return new WaitForSecondsRealtime(1f);
             }
         }

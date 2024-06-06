@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -31,9 +30,11 @@ namespace KartGame.Custom {
                 savePath = $"{MenuOptions.Instance.Name}_{MenuOptions.Instance.UID}%2F{trackName}%2F{trackName}-{lap}.{extension}";
                 shortName = $"{MenuOptions.Instance.Name}/{trackName}/{lap}.{extension}";
             }
-            Task<string> t = Task.Run(() => {return Convert.ToBase64String(recording);});
-            yield return new WaitUntil(() => t.IsCompleted);
-            using (UnityWebRequest www = UnityWebRequest.Post($"{recordingURL}%2F{savePath}", t.Result, "application/octet-stream")) {
+
+            string result = "";
+            yield return Instance.StartCoroutine(ConvertToBase64(recording, (converted) => result = converted));
+            
+            using (UnityWebRequest www = UnityWebRequest.Post($"{recordingURL}%2F{savePath}", result, "application/octet-stream")) {
                 yield return www.SendWebRequest();
                 if (www.result != UnityWebRequest.Result.Success) {
                     Debug.LogError($"Failed to upload {shortName}: {www.error}");
@@ -63,6 +64,12 @@ namespace KartGame.Custom {
                     }
                 }
             }
+        }
+
+        private static IEnumerator ConvertToBase64(byte[] data, Action<string> onComplete) {
+            string result = Convert.ToBase64String(data);
+            onComplete(result);
+            yield return null;
         }
     }
 }

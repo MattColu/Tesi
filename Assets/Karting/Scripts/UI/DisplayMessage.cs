@@ -35,7 +35,7 @@ public class DisplayMessage : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!autoDisplayOnAwake) return;
+        //if (!autoDisplayOnAwake) return;
         if (m_WasDisplayed) return;
         
 

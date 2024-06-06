@@ -47,14 +47,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameMode: 2
   targetName: Lap
-  title: Complete 5 laps
+  title: Complete 4 laps
   description: Laps
   isOptional: 0
   delayVisible: 5
   isTimed: 0
   totalTimeInSecs: 0
   displayMessage: {fileID: 1902712905063461278}
-  lapsToComplete: 5
+  lapsToComplete: 4
   notificationLapsRemainingThreshold: 1
   agent: {fileID: 0}
 --- !u!114 &1902712905063461278
@@ -69,7 +69,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea4170175d245c6409bb0cb4cc7b2c5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  message: Complete all the laps
+  message: Complete 4 laps
   messagePrefab: {fileID: 11400000, guid: 4f09a4fe2b79f494cb4b65e27102ddd2, type: 2}
   delayBeforeShowing: 3
   autoDisplayOnAwake: 0

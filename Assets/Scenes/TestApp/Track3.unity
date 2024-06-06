@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.17122526, g: 0.0695448, b: 0.15268382, a: 1}
+  m_IndirectSpecularColor: {r: 0.17068061, g: 0.06923961, b: 0.15184829, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2219,7 +2219,6 @@ MonoBehaviour:
   raceCountdownTrigger: {fileID: 1931097723}
   autoFindKarts: 1
   playerKart: {fileID: 451524314}
-  dummyKart: {fileID: 0}
 --- !u!1001 &223172162
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9092,7 +9091,7 @@ PrefabInstance:
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.09761158
+      value: 0.09761152
       objectReference: {fileID: 0}
     - target: {fileID: 6691645748356329553, guid: 4366ba6a4d5213d4f9fc7bba3e778799,
         type: 3}
@@ -12108,7 +12107,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1207105314}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.09761158, y: 0, z: 0, w: 0.9952246}
+  m_LocalRotation: {x: 0.09761152, y: 0, z: 0, w: 0.9952246}
   m_LocalPosition: {x: 0, y: 3, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12153,12 +12152,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    quality: 3
-    frameInfluence: 0.1
-    jitterScale: 1
-    mipBias: 0
-    varianceClampScale: 0.9
-    contrastAdaptiveSharpening: 0
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!4 &1226212857 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: 92bb9994204d1d44cb6223c53e4f84f8,
@@ -16029,13 +16028,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1902712905063461278, guid: 9982527ae59625f4db19031743e8e79d,
         type: 3}
-      propertyPath: message
-      value: Complete 5 laps
-      objectReference: {fileID: 0}
-    - target: {fileID: 1902712905063461278, guid: 9982527ae59625f4db19031743e8e79d,
-        type: 3}
-      propertyPath: autoDisplayOnAwake
-      value: 0
+      propertyPath: delayBeforeShowing
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1902712905063461279, guid: 9982527ae59625f4db19031743e8e79d,
         type: 3}
@@ -16601,7 +16595,7 @@ AudioSource:
     type: 2}
   m_audioClip: {fileID: 8300000, guid: 1939f7149c0fae14a891ac314cb2e8f3, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.4
+  m_Volume: 0.1
   m_Pitch: 1
   Loop: 1
   Mute: 0

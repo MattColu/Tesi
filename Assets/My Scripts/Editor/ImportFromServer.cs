@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using KartGame.Custom;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
@@ -19,8 +21,7 @@ public class ImportFromServer : EditorWindow
 
     private readonly string[] trackNameList = {"Track0", "Track1", "Track2", "Track3", "Track4"};
 
-    // private const int laps = 5;
-    private const int laps = 10;
+    private const int laps = 4;
     private DownloadType downloadType;
     private int lapsToDownload;
     private int demoMask;
@@ -58,9 +59,14 @@ public class ImportFromServer : EditorWindow
     }
 
     public void Clear(string path) {
-        if (Path.GetFileName(path) != "demos") throw new AccessViolationException(path);
         if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
-        foreach (string dir in Directory.EnumerateDirectories(path)) {
+        if (Path.GetFileName(path) != "demos") throw new AccessViolationException(path);
+        
+        string[] dirarray = Directory.EnumerateDirectories(path).ToArray();
+        if (dirarray.Any(f => Path.GetFileName(f) != "demonstrations" && Path.GetFileName(f) != "replays")) {
+            throw new AccessViolationException(path);
+        }
+        foreach (string dir in dirarray) {
             Directory.Delete(dir, true);
         }
     }

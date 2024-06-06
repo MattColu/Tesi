@@ -27,6 +27,9 @@ namespace KartGame.KartSystems
         [Tooltip("Maximum Pitch the Reverse sound will be at full Reverse speed")]
         [Range(0.1f, 2.0f)] public float ReverseSoundMaxPitch = 0.6f;
 
+        [Range(0.1f, 1.0f)] public float DriftSoundMaxVolume = 1.0f;
+        [Tooltip("Maximum Pitch the Drift sound will be when drifting")]
+
         ArcadeKart arcadeKart;
 
         void Awake()
@@ -40,7 +43,7 @@ namespace KartGame.KartSystems
             if (arcadeKart != null)
             {
                 kartSpeed = arcadeKart.LocalSpeed();
-                Drift.volume = arcadeKart.IsDrifting && arcadeKart.GroundPercent > 0.0f ? arcadeKart.Rigidbody.velocity.magnitude / arcadeKart.GetMaxSpeed() : 0.0f;
+                Drift.volume = arcadeKart.IsDrifting && arcadeKart.GroundPercent > 0.0f ? arcadeKart.Rigidbody.velocity.magnitude / arcadeKart.GetMaxSpeed() * DriftSoundMaxVolume : 0.0f;
             }
 
             IdleSound.volume    = Mathf.Lerp(0.6f, 0.0f, kartSpeed * 4);

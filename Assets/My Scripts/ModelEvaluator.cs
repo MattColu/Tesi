@@ -234,7 +234,6 @@ namespace KartGame.Custom {
             string filePath = $"{Directory.GetParent(Application.dataPath)}/Training/results/{MLAgentTrainedModel.name}/evaluations.jsonl";
             EvaluationResult result = new(demoFile, numberOfEvaluations, splitAmount, splitLength, evaluations.Average());
             File.AppendAllLines(filePath, new[] {JsonUtility.ToJson(result)});
-            //File.WriteAllText(filePath, JsonUtility.ToJson(result));
         }
     }
 }
