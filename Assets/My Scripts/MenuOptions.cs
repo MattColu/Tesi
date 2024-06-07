@@ -5,7 +5,7 @@ using UnityEngine;
     namespace KartGame.Custom {
     public class MenuOptions : MonoBehaviour {
         public static MenuOptions Instance;
-        public string Name {get => _name; set => _name = Regex.Replace(value.Trim().ToLower(), "[^a-zA-Z0-9 -]", "");}
+        public string Name {get => _name; set => _name = Regex.Replace(value.Trim().ToLower(), "[\\W]", "");}
         private string _name;
         private string t_name = "";
         public string UID {private set; get;}
@@ -28,7 +28,6 @@ using UnityEngine;
         }
 
         public void CreateUID() {
-            
             Instance.UID = DateTime.Now.ToString("s");
         }
 
@@ -76,6 +75,7 @@ using UnityEngine;
             Name = t_name;
             KartColor = _color;
             CreateUID();
+            Debug.Log(Name);
         }
     }
 }

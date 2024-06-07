@@ -309,12 +309,12 @@ MonoBehaviour:
   IdleSound: {fileID: 5141113698253163166}
   RunningSound: {fileID: 5141113698274104286}
   Drift: {fileID: 8548943313072018857}
-  RunningSoundMaxVolume: 0.75
+  RunningSoundMaxVolume: 0.3
   RunningSoundMaxPitch: 1.1
   ReverseSound: {fileID: 7916209065845860529}
-  ReverseSoundMaxVolume: 0.3
+  ReverseSoundMaxVolume: 0.2
   ReverseSoundMaxPitch: 0.6
-  DriftSoundMaxVolume: 0.15
+  DriftSoundMaxVolume: 0.18
 --- !u!1 &5141113698253163164
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,7 +487,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 819e4330b56d74b398255782be41515f, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -587,7 +587,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1200332781903969408
 Transform:
   m_ObjectHideFlags: 0
@@ -610,7 +610,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5603247989726288845}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 7eb03bd77be2345cd94afa59ba4cec74, type: 3}

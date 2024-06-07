@@ -35,35 +35,28 @@ namespace KartGame.KartSystems
         void Awake()
         {
             arcadeKart = GetComponentInParent<ArcadeKart>();
+            StartSound.volume = 0.0f;
+            IdleSound.volume = 0.0f;
+            RunningSound.volume = 0.0f;
+            Drift.volume = 0.0f;
+            ReverseSound.volume = 0.0f;
         }
 
         void Update()
         {
+
             float kartSpeed = 0.0f;
             if (arcadeKart != null)
             {
                 kartSpeed = arcadeKart.LocalSpeed();
+                if (Time.deltaTime > 0.3f || !arcadeKart.GetCanMove()) return; //Avoid sounds while loading and countdown
                 Drift.volume = arcadeKart.IsDrifting && arcadeKart.GroundPercent > 0.0f ? arcadeKart.Rigidbody.velocity.magnitude / arcadeKart.GetMaxSpeed() * DriftSoundMaxVolume : 0.0f;
             }
 
-            IdleSound.volume    = Mathf.Lerp(0.6f, 0.0f, kartSpeed * 4);
+            IdleSound.volume = Mathf.Lerp(0.6f, 0.0f, kartSpeed * 4);
 
-            if (kartSpeed < 0.0f)
-            {
-                // In reverse
-                RunningSound.volume = 0.0f;
-                ReverseSound.volume = Mathf.Lerp(0.1f, ReverseSoundMaxVolume, -kartSpeed * 1.2f);
-                ReverseSound.pitch = Mathf.Lerp(0.1f, ReverseSoundMaxPitch, -kartSpeed + (Mathf.Sin(Time.time) * .1f));
-            }
-            else
-            {
-                // Moving forward
-                ReverseSound.volume = 0.0f;
-                RunningSound.volume = Mathf.Lerp(0.1f, RunningSoundMaxVolume, kartSpeed * 1.2f);
-                RunningSound.pitch = Mathf.Lerp(0.3f, RunningSoundMaxPitch, kartSpeed + (Mathf.Sin(Time.time) * .1f));
-            }
-
-            
+            RunningSound.volume = Mathf.Lerp(0.1f, RunningSoundMaxVolume, Mathf.Abs(kartSpeed) * 1.2f);
+            RunningSound.pitch = Mathf.Lerp(0.3f, RunningSoundMaxPitch, Mathf.Abs(kartSpeed) + (Mathf.Sin(Time.time) * .1f));
         }
     }
 }

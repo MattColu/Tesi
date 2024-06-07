@@ -1,4 +1,7 @@
 Thank you for participating!
+↓↓↓↓↓↓ Please click "Show more"!
+
+After the introductory level you will be asked to drive 4 laps on 5 tracks of increasing difficulty.
 The objective is just to drive as you would normally, don't stress out!
 
 Controls:
@@ -8,7 +11,7 @@ R to reset to last checkpoint.
 Guidelines:
 Use a nickname you can remember (the same nickname can be used all the times you want);
 PLEASE don't actively try to break my game (e.g. drive backwards, get out of bounds) in the timed levels, I know it's fun and easy but doing this WILL affect the generated AI;
-I will discard incomplete runs, so if you mess something up feel free to start a new run.
+I will discard incomplete runs, so if you mess something up feel free to start a new run (just refresh the page).
 
 Scope:
 The data that you submit (i.e. your driving) will be used to train an AI system on your driving style.
