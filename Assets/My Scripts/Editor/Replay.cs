@@ -10,11 +10,14 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public class Replay : EditorWindow
+/// <summary>
+/// A simple utility for Replay playback.
+/// </summary>
+public class Replay: EditorWindow
 {
     private string filepath;
      
-    [MenuItem ("MLAgents/Replay .state File", priority = 31)]
+    [MenuItem ("Kart/Replay .state File", priority = 31)]
     public static void ShowWindow() {
         GetWindow(typeof(Replay));
     }

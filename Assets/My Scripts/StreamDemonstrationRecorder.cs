@@ -4,6 +4,13 @@ using Unity.MLAgents.Demonstrations;
 using UnityEngine;
 
 namespace KartGame.Custom.Demo {
+    /// <summary>
+    /// A wrapper for <see cref="DemonstrationRecorder"/> that allows writing to a MemoryStream.
+    /// <para>
+    /// This component hijacks an existing <see cref="DemonstrationRecorder"/>,
+    /// adding a new <see cref="DemonstrationWriter"/> to it that writes to the <see cref="MemoryStream"/>.
+    /// </para>
+    /// </summary>
     public class StreamDemonstrationRecorder : MonoBehaviour
     {
         public bool substitutesFileWriter = true;

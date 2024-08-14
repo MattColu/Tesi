@@ -1,8 +1,10 @@
-
 using KartGame.Custom.AI;
 using UnityEngine;
 
 namespace KartGame.Custom {
+    /// <summary>
+    /// An extension of <see cref="ObjectiveCompleteLaps"/> that allows splitting recordings at each lap.
+    /// </summary>
     public class ObjectiveCompleteLapsCustom : ObjectiveCompleteLaps
     {
         [SerializeField]

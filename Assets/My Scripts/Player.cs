@@ -8,6 +8,10 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KartGame.Custom.Demo
 {
+    /// <summary>
+    /// Generic implementation of replay playback. Defines functions common to all data types.
+    /// </summary>
+    /// <typeparam name="T">Replay data type. Has to be serializable with <see cref="BinaryFormatter"/></typeparam>
     public class Player<T> : MonoBehaviour
     {
         protected bool doneReading;

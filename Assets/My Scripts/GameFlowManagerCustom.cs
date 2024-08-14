@@ -6,6 +6,21 @@ using UnityEngine.SceneManagement;
 using KartGame.Custom.AI;
 
 namespace KartGame.Custom {
+    /// <summary>
+    /// A copy of <see cref="GameFlowManager"/> with a few differences:
+    /// 
+    /// <list type="bullet">
+    /// <item>
+    /// <description>Removed <see cref="GameState"/> enum</description>
+    /// </item>
+    /// <item>
+    /// <description>Removed Lose logic</description>
+    /// </item>
+    /// <item>
+    /// <description>Added start and stop logic for Agent Recorders</description>
+    /// </item>
+    /// </list>
+    /// </summary>
     public class GameFlowManagerCustom : MonoBehaviour
     {
         [Header("Parameters")]
@@ -110,8 +125,8 @@ namespace KartGame.Custom {
             yield return new WaitForSecondsRealtime(0.2f);
             for (int i = 0; i < m_ObjectiveManager.Objectives.Count; i++)
             {
-            //if (m_ObjectiveManager.Objectives[i].displayMessage)m_ObjectiveManager.Objectives[i].displayMessage.Display();
-            yield return new WaitForSecondsRealtime(1f);
+                //if (mc_ObjectiveManager.Objectives[i].displayMessage)m_ObjectiveManager.Objectives[i].displayMessage.Display();
+                yield return new WaitForSecondsRealtime(1f);
             }
         }
 

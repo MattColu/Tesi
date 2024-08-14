@@ -751,7 +751,7 @@ MonoBehaviour:
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 1
-      BranchSizes: 02000000
+      BranchSizes: 03000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
@@ -808,9 +808,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dee4e0aadb2772742901e0268f818327, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  userFilename: 
   DemoDuration: 0
   toDisk: 1
+  filename: 
+  fullpath: 
 --- !u!137 &7400333759681822283 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 7798798854743944591, guid: 19954de30401f73428254541a9ad156e,

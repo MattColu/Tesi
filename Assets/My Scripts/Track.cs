@@ -5,6 +5,9 @@ using UnityEditor;
 using UnityEngine;
 
 namespace KartGame.Custom {
+    /// <summary>
+    /// Collects references to all child checkpoints and provides info when queried.
+    /// </summary>
     public class Track : MonoBehaviour
     {
         [SerializeField] private Transform Spawnpoint;
@@ -40,16 +43,16 @@ namespace KartGame.Custom {
             Spawnpoint = transform.Find("Spawnpoint");
         }
 
-    /// <summary>
-    /// If the two closest checkpoints are consecutive, returns the latter of the two.
-    /// Otherwise, returns the closest checkpoint that's pointing in the same direction as the line pos-checkpoint. 
-    /// </summary>
-    /// <param name="pos"></param>
-    /// <returns></returns>
+        /// <summary>
+        /// If the two closest checkpoints are consecutive, returns the latter of the two.
+        /// Otherwise, returns the closest checkpoint that's pointing in the same direction as the line pos-checkpoint. 
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
         public int GetNextCheckpoint(Vector3 pos) {
             var checkpointsSortedByDistance = Checkpoints
             .Select(c => (c, Vector3.Distance(pos, c.ClosestPoint(pos))))   //Map to ((Collider, int), distance from pos)
-            .OrderBy((o) => o.Item2);                                           //Order by distance
+            .OrderBy((o) => o.Item2);                                       //Order by distance
 
             int closest0 = Array.IndexOf(Checkpoints, checkpointsSortedByDistance.ElementAt(0).c);
             int closest1 = Array.IndexOf(Checkpoints, checkpointsSortedByDistance.ElementAt(1).c);

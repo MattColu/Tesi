@@ -4,6 +4,10 @@ using KartGame.Custom.Demo;
 using UnityEngine;
 
 namespace KartGame.Custom {
+    /// <summary>
+    /// An array of <see cref="StateData"/> (defined in <see cref="StateRecorder"/>).
+    /// Also contains the similarity function (<see cref="Evaluate"/>).
+    /// </summary>
     public class Trajectory
     {
         public StateData[] points;
@@ -29,7 +33,7 @@ namespace KartGame.Custom {
             // Accumulator is (total squared distance, last position)
             length = t1.Aggregate((0f, t1[0].position), (acc, x) => (acc.Item1 + (x.position - acc.position).sqrMagnitude, x.position)).Item1;
 
-            return 1 - Mathf.Clamp01(Mathf.Sqrt(total) / length);//Mathf.Sqrt(length);
+            return 1 - Mathf.Clamp01(Mathf.Sqrt(total) / length);
         }
         public float Evaluate(Trajectory t) {
             return Evaluate(this, t);

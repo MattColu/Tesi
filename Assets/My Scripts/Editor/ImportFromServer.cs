@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KartGame.Custom;
@@ -7,9 +6,11 @@ using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Handles downloading and saving user data from the server.
+/// </summary>
 public class ImportFromServer : EditorWindow
 {
-
     private enum DownloadType {
         Cumulative,
         NPerTrack
@@ -25,9 +26,8 @@ public class ImportFromServer : EditorWindow
     private DownloadType downloadType;
     private int lapsToDownload;
     private int demoMask;
-    private int replayMask;
 
-    [MenuItem ("MLAgents/Import Demos From Firebase", priority = 30)]
+    [MenuItem ("Kart/Import Demos From Firebase", priority = 30)]
     public static void ShowWindow() {
         GetWindow(typeof(ImportFromServer));
     }

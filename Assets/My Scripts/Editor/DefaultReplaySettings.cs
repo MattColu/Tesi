@@ -34,7 +34,7 @@ namespace KartGame.Custom.Demo {
     static class ReplaySettingsProvider {
         [SettingsProvider]
         public static SettingsProvider CreateReplaySettingsProvider() {
-            var provider = new SettingsProvider("Project/Replay", SettingsScope.Project) {
+            var provider = new SettingsProvider("Project/Kart Settings/Replay Settings", SettingsScope.Project) {
                 label = "Replay Settings",
                 guiHandler = (searchContext) => {
                     var settings = ReplaySettings.GetSerializedSettings();

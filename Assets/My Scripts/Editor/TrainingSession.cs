@@ -14,6 +14,9 @@ using UnityEngine;
 
 
 namespace KartGame.Custom.Training {
+    /// <summary>
+    /// For ease of implementation, each step contains both <see cref="TrainingSettings"/> and <see cref="EvaluationSettings"/>, but execution is always switched on only one of the two based on <see cref="SessionStepType"/>.
+    /// </summary>
     [Serializable]
     public struct SessionStep {
         public SessionStepType stepType;
@@ -64,6 +67,12 @@ namespace KartGame.Custom.Training {
         }
     }
 
+    /// <summary>
+    /// A sequence of training/evaluation steps.
+    /// <para>
+    /// Implements methods for execution, loading/saving and error management.
+    /// </para>
+    /// </summary>
     [Serializable]
     public struct TrainingSession: IEnumerable<SessionStep> {
         public SessionStep[] steps;
@@ -101,62 +110,63 @@ namespace KartGame.Custom.Training {
             if (condaStartScript == "") throw new ArgumentNullException("Conda activation script");
 
             for (int i = 0; i < steps.Length; i++) {
-                if (steps[i].stepType == SessionStepType.Training) {
-                    if (steps[i].trainingSettings.agent == null) {
-                        steps[i].trainingSettings.agent = (KartAgent)DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
-                    }
-                    if (steps[i].trainingSettings.trackInstances == 0) {
-                        steps[i].trainingSettings.trackInstances = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultTrackInstances").intValue;
-                    }
-                    if (steps[i].trainingSettings.agentInstances == 0) {
-                        steps[i].trainingSettings.agentInstances = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultAgentInstances").intValue;
-                    }
-                    if (steps[i].trainingSettings.trainer == "") {
-                        steps[i].trainingSettings.trainer = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultTrainer").stringValue;
-                    }
+                switch(steps[i].stepType) {
+                    case SessionStepType.Training:
+                        if (steps[i].trainingSettings.agent == null) {
+                            steps[i].trainingSettings.agent = (KartAgent)DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultAgent").objectReferenceValue;
+                        }
+                        if (steps[i].trainingSettings.trackInstances == 0) {
+                            steps[i].trainingSettings.trackInstances = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultTrackInstances").intValue;
+                        }
+                        if (steps[i].trainingSettings.agentInstances == 0) {
+                            steps[i].trainingSettings.agentInstances = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultAgentInstances").intValue;
+                        }
+                        if (steps[i].trainingSettings.trainer == "") {
+                            steps[i].trainingSettings.trainer = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_DefaultTrainer").stringValue;
+                        }
 
-                    if (steps[i].trainingSettings.track == null) throw new ArgumentNullException($"Step {i} Track");
-                    if (steps[i].trainingSettings.agent == null) throw new ArgumentNullException($"Step {i} Agent");
-                    if (steps[i].trainingSettings.trackInstances == 0) throw new ArgumentNullException($"Step {i} Track Instances");
-                    if (steps[i].trainingSettings.agentInstances == 0) throw new ArgumentNullException($"Step {i} Agent Instances");
-                    if (steps[i].trainingSettings.trainer == "") throw new ArgumentNullException($"Step {i} Trainer");
-                    if (steps[i].trainingSettings.runId == "") throw new ArgumentNullException($"Step {i} RunID");
-                    
-                    if (steps[i].trainingSettings.initializeFrom != "") {
-                        if (!Directory.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/results", steps[i].trainingSettings.initializeFrom))) {
-                            string nameToMatch = steps[i].trainingSettings.initializeFrom;
-                            if (!steps[..i].Any(step => step.trainingSettings.runId == nameToMatch)) {
-                                throw new DirectoryNotFoundException($"Step {i} Initialize from {steps[i].trainingSettings.initializeFrom}");
-                            }
-                        } 
-                    }
-                    if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", steps[i].trainingSettings.trainer))) throw new FileNotFoundException($"Step {i} Trainer: {steps[i].trainingSettings.trainer}");
-                    if (!File.Exists(condaStartScript)) throw new FileNotFoundException($"Conda activation script: {condaStartScript}");
-                
-                } else {
+                        if (steps[i].trainingSettings.track == null) throw new ArgumentNullException($"Step {i} Track");
+                        if (steps[i].trainingSettings.agent == null) throw new ArgumentNullException($"Step {i} Agent");
+                        if (steps[i].trainingSettings.trackInstances == 0) throw new ArgumentNullException($"Step {i} Track Instances");
+                        if (steps[i].trainingSettings.agentInstances == 0) throw new ArgumentNullException($"Step {i} Agent Instances");
+                        if (steps[i].trainingSettings.trainer == "") throw new ArgumentNullException($"Step {i} Trainer");
+                        if (steps[i].trainingSettings.runId == "") throw new ArgumentNullException($"Step {i} RunID");
+                        
+                        if (steps[i].trainingSettings.initializeFrom != "") {
+                            if (!Directory.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/results", steps[i].trainingSettings.initializeFrom))) {
+                                string nameToMatch = steps[i].trainingSettings.initializeFrom;
+                                if (!steps[..i].Any(step => step.trainingSettings.runId == nameToMatch)) {
+                                    throw new DirectoryNotFoundException($"Step {i} Initialize from {steps[i].trainingSettings.initializeFrom}");
+                                }
+                            } 
+                        }
+                        if (!File.Exists(Path.Join($"{Directory.GetParent(Application.dataPath)}/Training/trainers", steps[i].trainingSettings.trainer))) throw new FileNotFoundException($"Step {i} Trainer: {steps[i].trainingSettings.trainer}");
+                        if (!File.Exists(condaStartScript)) throw new FileNotFoundException($"Conda activation script: {condaStartScript}");
+                    break;
+                    case SessionStepType.Evaluation:
+                        if (steps[i].evaluationSettings.numberOfEvaluations == 0) {
+                            steps[i].evaluationSettings.numberOfEvaluations = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultNumberOfEvaluations").intValue;
+                        }
+                        if (steps[i].evaluationSettings.splitAmount == 0) {
+                            steps[i].evaluationSettings.splitAmount = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultSplitAmount").intValue;
+                        }
+                        if (steps[i].evaluationSettings.splitLength == 0) {
+                            steps[i].evaluationSettings.splitLength = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultSplitLength").intValue;
+                        }
+                        if (steps[i].evaluationSettings.demoFolder == "") throw new ArgumentNullException($"Step {i} Demo File/Folder");
+                        if (steps[i].evaluationSettings.modelRunId == "") throw new ArgumentNullException($"Step {i} Model Run Id");
+                        if (steps[i].evaluationSettings.numberOfEvaluations == 0) throw new ArgumentNullException($"Step {i} Number of Evaluations");
+                        if (steps[i].evaluationSettings.splitAmount == 0) throw new ArgumentNullException($"Step {i} Split Amount");
+                        if (steps[i].evaluationSettings.splitLength == 0) throw new ArgumentNullException($"Step {i} Split Length");
+                        
+                        if (!Directory.Exists($"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{steps[i].evaluationSettings.demoFolder}")) throw new DirectoryNotFoundException($"Step {i} Demo Folder: {steps[i].evaluationSettings.demoFolder}");
+                        
+                        int fileCount = Directory.EnumerateFiles($"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{steps[i].evaluationSettings.demoFolder}", "*.state").Count();
+                        if (fileCount == 0) throw new FileLoadException($"Step {i} Demo Folder {steps[i].evaluationSettings.demoFolder} is empty");
+                        steps[i].evaluationSettings.SetFileCount(fileCount);
 
-                    if (steps[i].evaluationSettings.numberOfEvaluations == 0) {
-                        steps[i].evaluationSettings.numberOfEvaluations = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultNumberOfEvaluations").intValue;
-                    }
-                    if (steps[i].evaluationSettings.splitAmount == 0) {
-                        steps[i].evaluationSettings.splitAmount = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultSplitAmount").intValue;
-                    }
-                    if (steps[i].evaluationSettings.splitLength == 0) {
-                        steps[i].evaluationSettings.splitLength = DefaultEvaluationSettings.GetSerializedSettings().FindProperty("m_DefaultSplitLength").intValue;
-                    }
-                    if (steps[i].evaluationSettings.demoFolder == "") throw new ArgumentNullException($"Step {i} Demo File/Folder");
-                    if (steps[i].evaluationSettings.modelRunId == "") throw new ArgumentNullException($"Step {i} Model Run Id");
-                    if (steps[i].evaluationSettings.numberOfEvaluations == 0) throw new ArgumentNullException($"Step {i} Number of Evaluations");
-                    if (steps[i].evaluationSettings.splitAmount == 0) throw new ArgumentNullException($"Step {i} Split Amount");
-                    if (steps[i].evaluationSettings.splitLength == 0) throw new ArgumentNullException($"Step {i} Split Length");
-                    
-                    if (!Directory.Exists($"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{steps[i].evaluationSettings.demoFolder}")) throw new DirectoryNotFoundException($"Step {i} Demo Folder: {steps[i].evaluationSettings.demoFolder}");
-                    
-                    int fileCount = Directory.EnumerateFiles($"{Directory.GetParent(Application.dataPath)}/Training/demos/replays/{steps[i].evaluationSettings.demoFolder}", "*.state").Count();
-                    if (fileCount == 0) throw new FileLoadException($"Step {i} Demo Folder {steps[i].evaluationSettings.demoFolder} is empty");
-                    steps[i].evaluationSettings.SetFileCount(fileCount);
-
-                    steps[i].evaluationSettings.numberOfEvaluations /= fileCount;
+                        steps[i].evaluationSettings.numberOfEvaluations /= fileCount;
+                    break;
                 }
             }
             return true;

@@ -2,7 +2,10 @@ using System;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-    namespace KartGame.Custom {
+namespace KartGame.Custom {
+    /// <summary>
+    /// Singleton class, stores user data for the playing session.
+    /// </summary>
     public class MenuOptions : MonoBehaviour {
         public static MenuOptions Instance;
         public string Name {get => _name; set => _name = Regex.Replace(value.Trim().ToLower(), "[\\W]", "");}

@@ -3,7 +3,7 @@ using KartGame.Custom.AI;
 using UnityEditor;
 using UnityEngine;
 
-namespace KartGame.Custom.Training {   
+namespace KartGame.Custom.Training {
     class DefaultEvaluationSettings: ScriptableObject {
         public const string k_EvaluationSettingsPath = "Assets/My Scripts/Editor/DefaultEvaluationSettings.asset";
 
@@ -46,10 +46,10 @@ namespace KartGame.Custom.Training {
         }
     }
 
-    static class EvaluationSettingsProvider {
+    public static class EvaluationSettingsProvider {
         [SettingsProvider]
         public static SettingsProvider CreateEvaluationSettingsProvider() {
-            var provider = new SettingsProvider("Project/Evaluation", SettingsScope.Project) {
+            var provider = new SettingsProvider("Project/Kart Settings/Evaluation Settings", SettingsScope.Project) {
                 label = "Evaluation Settings",
                 guiHandler = (searchContext) => {
                     var settings = DefaultEvaluationSettings.GetSerializedSettings();

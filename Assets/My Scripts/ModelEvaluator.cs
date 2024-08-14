@@ -13,6 +13,17 @@ using System.IO;
 
 namespace KartGame.Custom {
 
+    /// <summary>
+    /// Manages evaluation of a trained model, should not be instanced manually (use <see cref="TrainingSessionEditor"/> or <see cref="ModelEvaluatorEditor"/>).
+    /// <para>
+    /// Requires a reference replay file,
+    /// instantiates the agent on the file's trajectory,
+    /// evaluates the generated data and saves it to a file.
+    /// </para>
+    /// <para>
+    /// Note that this object has to be selected in order for the trajectories to appear. In case this is unwanted, change <see cref="OnDrawGizmosSelected"/> to OnDrawGizmos().
+    /// </para>
+    /// </summary>
     public class ModelEvaluator : MonoBehaviour
     {
         private struct EvaluationResult {

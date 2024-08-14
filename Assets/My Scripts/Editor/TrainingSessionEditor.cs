@@ -8,6 +8,29 @@ using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Manages advancing the Training Session and all interactions with the Unity Editor.
+/// <para>
+/// State changes:
+/// <list type="bullet">
+/// <item>
+/// <description>
+/// <see cref="SessionFSM"/> enumerates all possible execution states; 
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// <see cref="SessionStepType"/> (defined in <see cref="TrainingSession"/>) enumerates the two possible step types (<see cref="SessionStepType.Training"/> or <see cref="SessionStepType.Evaluation"/>);
+/// </description>
+/// </item>
+/// <item>
+/// <description>
+/// <see cref="EditorApplication.playModeStateChanged"/> is an event that gets subscribed by this editor window, signals every change from Play to Edit Mode and vice versa.
+/// </description>
+/// </item>
+/// </list>
+/// </para>
+/// </summary>
 public class TrainingSessionEditor : EditorWindow
 {
     private enum SessionFSM {
@@ -18,7 +41,6 @@ public class TrainingSessionEditor : EditorWindow
         Waiting
     }
 
- 
     public TrainingSession sessionTemplate;
     private TrainingSession session;
     private SerializedObject serializedSession;
@@ -37,7 +59,7 @@ public class TrainingSessionEditor : EditorWindow
 
     Vector2 scrollPosition = Vector2.zero;
 
-    [MenuItem ("MLAgents/Start Tensorboard", priority = 50)]
+    [MenuItem ("Kart/Start Tensorboard", priority = 50)]
     public static void StartTensorboard() {
         string condaStartScript = DefaultTrainingSettings.GetSerializedSettings().FindProperty("m_CondaActivateScript").stringValue;
         LaunchTensorboard(condaStartScript);
@@ -45,7 +67,7 @@ public class TrainingSessionEditor : EditorWindow
     }
 
 
-    [MenuItem ("MLAgents/Setup Training", priority = 10)]
+    [MenuItem ("Kart/Setup Training", priority = 10)]
     public static void ShowWindow() {
         GetWindow<TrainingSessionEditor>();
     }

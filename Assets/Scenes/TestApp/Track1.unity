@@ -13149,6 +13149,11 @@ PrefabInstance:
       propertyPath: agent
       value: 
       objectReference: {fileID: 255042922}
+    - target: {fileID: 5402234358615745790, guid: 9982527ae59625f4db19031743e8e79d,
+        type: 3}
+      propertyPath: lapsToComplete
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

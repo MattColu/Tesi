@@ -11,11 +11,6 @@ using UnityEngine.SceneManagement;
 
 namespace KartGame.Custom.AI
 {
-    /// <summary>
-    /// We only want certain behaviours when the agent runs.
-    /// Training would allow certain functions such as OnAgentReset() be called and execute, while Inferencing will
-    /// assume that the agent will continuously run and not reset.
-    /// </summary>
     public enum AgentMode
     {
         Training,
@@ -24,7 +19,8 @@ namespace KartGame.Custom.AI
     }
 
     /// <summary>
-    /// The KartAgent will drive the inputs for the KartController.
+    /// A copy of <see cref="KartGame.AI.KartAgent"/> (note the different Namespace):
+    /// significant changes were made in the training logic.
     /// </summary>
     public class KartAgent : Agent, IInput
     {
@@ -122,20 +118,6 @@ namespace KartGame.Custom.AI
                 case AgentMode.Inferencing:
                     if (ShowRaycasts) 
                         Debug.DrawRay(transform.position, Vector3.down * GroundCastDistance, Color.cyan);
-                    /*
-                    // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
-                    if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
-                        && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
-                    {
-                        // Reset the agent back to its last known agent checkpoint
-                        var checkpoint = Track.Checkpoints[lastCheckpoint ?? 0].transform;
-                        transform.localRotation = checkpoint.rotation;
-                        transform.position = checkpoint.position;
-                        m_Rigidbody.velocity = default;
-                        m_Steering = 0f;
-						m_Acceleration = m_Brake = false; 
-                    }
-                    */
                     break;
             }
         }

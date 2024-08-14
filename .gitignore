@@ -32,6 +32,9 @@
 # Generated builds
 /*.zip
 
+# Thesis files and images
+/Docs/
+
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
 

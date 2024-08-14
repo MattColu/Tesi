@@ -1,14 +1,18 @@
 using System;
 using System.IO;
-using Cinemachine;
 using KartGame.Custom;
 using KartGame.Custom.AI;
 using KartGame.Custom.Training;
-using KartGame.KartSystems;
 using Unity.Sentis;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// A standalone implementation of the evaluation system.
+/// <para>
+/// Unlike an Evaluation Step from <see cref="TrainingSessionEditor"/>, this does not save to file and results persist until <c>Play Mode</c> is stopped.
+/// </para>
+/// </summary>
 public class ModelEvaluatorEditor: EditorWindow
 {
     private ModelEvaluator evaluatorPrefab;
@@ -32,7 +36,7 @@ public class ModelEvaluatorEditor: EditorWindow
     private string modelName;
     private string demoFilepath;
     
-    [MenuItem ("MLAgents/Evaluate Model", priority = 11)]
+    [MenuItem ("Kart/Evaluate Model", priority = 11)]
     public static void ShowWindow() {
         GetWindow(typeof(ModelEvaluatorEditor));
     }

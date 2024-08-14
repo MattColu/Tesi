@@ -45,7 +45,7 @@ namespace KartGame.Custom.Training {
     static class TrainingSettingsProvider {
         [SettingsProvider]
         public static SettingsProvider CreateTrainingSettingsProvider() {
-            var provider = new SettingsProvider("Project/Training", SettingsScope.Project) {
+            var provider = new SettingsProvider("Project/Kart Settings/Training Settings", SettingsScope.Project) {
                 label = "Training Settings",
                 guiHandler = (searchContext) => {
                     var settings = DefaultTrainingSettings.GetSerializedSettings();

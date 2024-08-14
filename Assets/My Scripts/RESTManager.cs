@@ -57,7 +57,9 @@ namespace KartGame.Custom {
                     }
                     using (FileStream fs = File.Create(localPath)) {
                         if (binary) {
-                            fs.Write(Convert.FromBase64String(www.downloadHandler.text));
+                            byte[] res = Convert.FromBase64String(www.downloadHandler.text);
+                            //res[55] = 0x03;
+                            fs.Write(res);
                         } else {
                             fs.Write(www.downloadHandler.data);
                         }

@@ -7,6 +7,10 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace KartGame.Custom.Demo
 {
+    /// <summary>
+    /// Generic implementation of replay recording. Defines functions common to all data types.
+    /// </summary>
+    /// <typeparam name="T">Replay data type. Has to be serializable with <see cref="BinaryFormatter"/></typeparam>
     public class Recorder<T> : MonoBehaviour
     {
         [Tooltip("Number of Fixed Timesteps to record (0 records until the editor is stopped)")]
